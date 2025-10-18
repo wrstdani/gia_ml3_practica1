@@ -1,21 +1,24 @@
-"""
-- Módulos propios:
-"""
 from src.autoencoder import Autoencoder
 
-"""
-- Librerías externas
-"""
 import numpy as np
-
 import sklearn
+import torch
 
 class MixedManifoldDetector:
     """
     
     """
-    def __init__(self, autoencoder: Autoencoder, manifold_alg: sklearn.base.TransformerMixin):
-        ...
+    def __init__(self, autoencoder: Autoencoder = None, manifold_alg: sklearn.base.TransformerMixin = None):
+        if autoencoder is None:
+            self.autoencoder = Autoencoder()
+        else:
+            self.autoencoder = autoencoder
+
+        if manifold_alg is None:
+            self.manifold_alg = TSNE()
+        else:
+            self.manifold_alg = manifold_alg
+
     """
     
     """
