@@ -1,4 +1,4 @@
-from src.autoencoder import Autoencoder
+from autoencoder import Autoencoder
 
 import torch
 import torch.nn as nn
@@ -14,7 +14,7 @@ class LinearAutoencoder(Autoencoder):
                  error_threshold: float = 0.0,
                  optimizer: torch.optim.Optimizer | None = None,
                  device: str = "cpu"):
-        super().__init__(batch_size, latent_dim, epochs, loss_fn, error_threshold, device)
+        super().__init__(batch_size, input_dim, latent_dim, lr, epochs, loss_fn, error_threshold, device)
     
     def _build_encoder(self):
         self.encoder = nn.Sequential(
@@ -29,11 +29,3 @@ class LinearAutoencoder(Autoencoder):
             nn.Linear(in_features=64, out_features=128),
             nn.Linear(in_features=128, out_features=self.input_dim)
         )
-
-
-def main():
-    ...
-
-
-if __name__ == "__main__":
-    ...
