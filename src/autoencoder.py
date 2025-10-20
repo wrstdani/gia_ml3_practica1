@@ -1,8 +1,11 @@
+"""
+Interfaz para construir diferentes tipos de autoencoders
+"""
+
 from abc import ABC, abstractmethod
-
 import numpy as np
-
 import torch
+from tqdm import tqdm
 
 class Autoencoder(torch.nn.Module, ABC):
     def __init__(self,
@@ -13,7 +16,7 @@ class Autoencoder(torch.nn.Module, ABC):
                  epochs: int = 100,
                  loss_fn: torch.nn.Module | None = None,
                  error_threshold: float = 0.0,
-                 device: str = "cpu"):
+                 device: str | None = None):
         """
         Constructor base de la interfaz Autoencoder.
         Args:
@@ -26,7 +29,7 @@ class Autoencoder(torch.nn.Module, ABC):
             error_threshold (float): Umbral que determina si se continúa entrenando el autoencoder en cada epoch.
             device (str): Dispositivo en que PyTorch entrenará el autoencoder.
         """
-        super().__init__()
+        super(Autoencoder, self).__init__()
 
         self.batch_size = batch_size
         self.input_dim = input_dim
@@ -35,7 +38,7 @@ class Autoencoder(torch.nn.Module, ABC):
         self.epochs = epochs
         self.loss_fn = loss_fn if loss_fn is not None else torch.nn.MSELoss()
         self.error_threshold = error_threshold
-        self.device = device
+        self.device = device if device is not None else ("cuda" if torch.cuda.is_available() else "cpu")
         self.trained = False  # Para prevenir utilizar transform() sin entrenar
         self.encoder = None
         self.decoder = None
@@ -56,13 +59,15 @@ class Autoencoder(torch.nn.Module, ABC):
 
     def _forward(self, x: torch.Tensor) -> torch.Tensor:
         z = self.encoder(x)
-        return self.decoder(z)
+        return z, self.decoder(z)
     
     def _train_autoencoder(self, x: torch.Tensor):
         self.train()
+        train_ended_flag = False
         print("- Entrenando autoencoder...")
         optimizer = torch.optim.Adam(self.parameters(), lr=self.lr)
-        for epoch in range(self.epochs):
+        progress_bar = tqdm(range(self.epochs), desc="Entrenamiento del autoencoder", unit="epoch")
+        for epoch in progress_bar:
 
             epoch_loss = 0.0
             n_batches = 0
@@ -77,18 +82,38 @@ class Autoencoder(torch.nn.Module, ABC):
                 n_batches += 1
             
             avg_loss = epoch_loss / n_batches
-            print(f"    - Pérdida promedio en epoch {epoch + 1} = {avg_loss:.4f}")
+
+            progress_bar.set_postfix({
+                "loss": f"{avg_loss:.4f}",
+                "epoch": f"{epoch+1}/{self.epochs}"
+            })
+            
             if avg_loss <= self.error_threshold:
+                progress_bar.close()
                 print(f"- Entrenamiento detenido en epoch {epoch + 1}. Pérdida: {avg_loss:.4f}")
+                train_ended_flag = True
+                break
+        
+        if not train_ended_flag:
+            progress_bar.close()
+            print(f"- Entrenamiento completado. Pérdida final: {avg_loss:.4f}")
 
     
     def _train_batch(self, x_batch: torch.Tensor, optimizer: torch.optim.Optimizer):
         optimizer.zero_grad()
-        output = self._forward(x_batch)
+        x_batch_tilde = self._add_noise(x_batch)
+        z, output = self._forward(x_batch_tilde)
         loss = self.loss_fn(output, x_batch)
-        loss.backward()
+        total_loss = loss + self._compute_additional_loss(x_batch, z, output)
+        total_loss.backward()
         optimizer.step()
-        return loss.item()
+        return total_loss.item()
+    
+    def _compute_additional_loss(self, x_batch: torch.Tensor, z: torch.Tensor, output: torch.Tensor) -> torch.Tensor:
+        return torch.tensor(0.0, device=self.device)
+    
+    def _add_noise(self, x_batch: torch.Tensor):
+        return x_batch
 
     def fit(self, data: np.ndarray):
         """

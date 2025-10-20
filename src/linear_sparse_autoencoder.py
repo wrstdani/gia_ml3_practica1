@@ -1,23 +1,38 @@
-from autoencoder import Autoencoder
+"""
+Autoencoder lineal con regularización Sparse
+"""
 
 import torch
-import torch.nn as nn
+from linear_autoencoder import LinearAutoencoder
 
-class SparseAutoencoder(Autoencoder):
+class LinearSparseAutoencoder(LinearAutoencoder):
     def __init__(self,
                  batch_size: int,
                  input_dim: int,
                  latent_dim: int = 32,
                  lr: float = 1e-3,
                  epochs: int = 100,
-                 loss_fn: nn.Module | None = None,
+                 loss_fn: torch.nn.Module | None = None,
                  error_threshold: float = 0.0,
-                 optimizer: torch.optim.Optimizer | None = None,
-                 device: str = "cpu"):
-        super().__init__(batch_size, latent_dim, epochs, loss_fn, error_threshold, device)
-    
-    def _build_encoder(self):
-        ...
-    
-    def _build_decoder(self):
-        ...
+                 device: str = "cpu",
+                 lambda_val: float = 1e-3):
+        """
+        Constructor de la clase LinearSparseAutoencoder.
+        Args:
+            lambda_val (float): También llamado sparsity weight. Controla el peso de la regularización L1.
+        """
+        super(LinearSparseAutoencoder, self).__init__(batch_size, input_dim, latent_dim, lr, epochs, loss_fn, error_threshold, device)
+        self.lambda_val: float = lambda_val
+
+    def _compute_additional_loss(self, x_batch: torch.Tensor, z: torch.Tensor, output: torch.Tensor) -> float:
+        """
+        Calcula el término de regularización L1.
+        Fórmula: L_sparse = lambda_val * mean(|z|)
+        Args:
+            x_batch (torch.Tensor): Batch actual del entrenamiento.
+            z (torch.Tensor): Embedding del batch actual del entrenamiento.
+            output (torch.Tensor): Output del modelo (por si quiere tenerse en cuenta el error de reconstrucción)
+        Output:
+            Término de regularización L1
+        """
+        return self.lambda_val * torch.mean(torch.abs(z))
