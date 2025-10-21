@@ -3,10 +3,23 @@ import sys
 import pytest
 import numpy as np
 import sklearn
+import itertools
 
 # Incluir la raíz del proyecto en el path
 root_path = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.insert(0, root_path)
+
+# Constantes
+AUTOENCODER_TYPES = [
+    "LinearAutoencoder",
+    "LinearSparseAutoencoder",
+    "DenoisingSparseAutoencoder"
+]
+MANIFOLD_ALGORITHMS = [
+    "tsne",
+    "lle"
+]
+AUTOENCODER_MANIFOLD_COMBINATIONS = list(itertools.product(AUTOENCODER_TYPES, MANIFOLD_ALGORITHMS))
 
 # Fixtures de rutas
 @pytest.fixture(scope="session")

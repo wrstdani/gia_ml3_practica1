@@ -5,6 +5,7 @@ Autoencoder lineal
 import torch
 from autoencoder import Autoencoder
 
+
 class LinearAutoencoder(Autoencoder):
     def __init__(self,
                  batch_size: int,
@@ -16,10 +17,11 @@ class LinearAutoencoder(Autoencoder):
                  error_threshold: float = 0.0,
                  device: str = "cpu"):
         """
-        
+
         """
-        super().__init__(batch_size, input_dim, latent_dim, lr, epochs, loss_fn, error_threshold, device)
-    
+        super().__init__(batch_size, input_dim, latent_dim,
+                         lr, epochs, loss_fn, error_threshold, device)
+
     def _build_encoder(self):
         self.encoder = torch.nn.Sequential(
             torch.nn.Linear(in_features=self.input_dim, out_features=128),
@@ -28,7 +30,7 @@ class LinearAutoencoder(Autoencoder):
             torch.nn.ReLU(),
             torch.nn.Linear(in_features=64, out_features=self.latent_dim)
         )
-    
+
     def _build_decoder(self):
         self.decoder = torch.nn.Sequential(
             torch.nn.Linear(in_features=self.latent_dim, out_features=64),

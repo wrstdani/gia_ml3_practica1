@@ -5,6 +5,7 @@ Autoencoder con regularizaciones Denoising y Sparse
 import torch
 from linear_sparse_autoencoder import LinearSparseAutoencoder
 
+
 class DenoisingSparseAutoencoder(LinearSparseAutoencoder):
     def __init__(self,
                  batch_size: int,
@@ -24,7 +25,8 @@ class DenoisingSparseAutoencoder(LinearSparseAutoencoder):
             noise_factor (float): Porcentaje de ruido que se introducirá a los datos de entrenamiento.
         """
 
-        super().__init__(batch_size, input_dim, latent_dim, lr, epochs, loss_fn, error_threshold, device)
+        super().__init__(batch_size, input_dim, latent_dim,
+                         lr, epochs, loss_fn, error_threshold, device)
         self.lambda_val: float = lambda_val
         self.noise_factor: float = noise_factor
 
@@ -37,6 +39,7 @@ class DenoisingSparseAutoencoder(LinearSparseAutoencoder):
             Batch de datos con ruido añadido.
         """
         noisy_batch = x_batch + torch.randn_like(x_batch) * self.noise_factor
-        if x_batch.min() >= 0.0 and x_batch.max() <= 1.0:  # Aplicar clipping si los datos están en [0.0, 1.0]
+        # Aplicar clipping si los datos están en [0.0, 1.0]
+        if x_batch.min() >= 0.0 and x_batch.max() <= 1.0:
             noisy_batch = torch.clip(noisy_batch, 0.0, 1.0)
         return noisy_batch

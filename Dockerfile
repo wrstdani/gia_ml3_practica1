@@ -9,8 +9,8 @@ COPY requirements.txt /gia_ml3_practica1/requirements.txt
 
 # Instalar librerías utilizando requirements.txt
 RUN apt-get update && \
-    pip install --upgrade pip setuptools wheel && \
     pip install --no-cache-dir -r /gia_ml3_practica1/requirements.txt && \
+    pip install --no-cache-dir -r /gia_ml3_practica1/requirements-dev.txt && \
     rm -rf /var/lib/apt/lists/* && \
     rm -rf /tmp/* && \
     rm -rf /root/.cache/pip

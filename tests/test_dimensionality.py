@@ -1,10 +1,7 @@
 import pytest
+from tests.conftest import AUTOENCODER_TYPES, MANIFOLD_ALGORITHMS
 
-@pytest.mark.parametrize("autoencoder_type", [
-    "LinearAutoencoder",
-    "LinearSparseAutoencoder",
-    "DenoisingSparseAutoencoder"
-])
+@pytest.mark.parametrize("autoencoder_type", AUTOENCODER_TYPES)
 def test_output_dimensionality_autoencoder(autoencoder_type, autoencoder_factory, sample_data):
     """
     Comprueba que la dimensionalidad de la salida de los distintos tipos de autoencoders
@@ -19,10 +16,7 @@ def test_output_dimensionality_autoencoder(autoencoder_type, autoencoder_factory
     assert output.shape[1] == autoencoder.latent_dim, \
         f"Según el modelo, la dimensión de las representaciones latentes debería ser {autoencoder.latent_dim} y el output es {output.shape[1]}-dimensional."
 
-@pytest.mark.parametrize("manifold_alg", [
-    "tsne",
-    "lle"
-])
+@pytest.mark.parametrize("manifold_alg", MANIFOLD_ALGORITHMS)
 def test_output_dimensionality_mixed_manifold_detector(manifold_alg, mixed_manifold_detector_factory, sample_data):
     """
     Comprueba que la dimensionalidad de la salida del sistema de detección sea correcta.
