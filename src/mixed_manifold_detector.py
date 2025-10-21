@@ -25,7 +25,6 @@ class MixedManifoldDetector:
             autoencoder (Autoencoder): Autoencoder a entrenar para obtener representaciones latentes.
             manifold_alg (sklearn.base.TransformerMixin): Algoritmo clásico de manifold learning para
                                                           obtener representaciones 2D.
-            scale_flag (bool): Si es True, aplica el escalado a los datos. Si no, se utilizan los datos originales.
         """
         if input_dim is None and autoencoder is None:
             raise ValueError(

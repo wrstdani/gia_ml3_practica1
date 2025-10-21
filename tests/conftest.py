@@ -99,8 +99,7 @@ def mixed_manifold_detector_factory():
         default_params = {
             "input_dim": input_dim,
             "autoencoder": None,
-            "manifold_alg": None,
-            "scale_flag": True
+            "manifold_alg": None
         }
         params = {**default_params, **kwargs}
 
