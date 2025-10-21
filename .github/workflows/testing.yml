@@ -28,6 +28,11 @@ jobs:
         key: ${{ runner.os }}-uv-${{ hashFiles('**/requirements.txt') }}
         restore-keys: |
           ${{ runner.os }}-uv-
+    - name: Create and Activate Virtual Environment
+      run: |
+        uv venv .venv
+        echo "VIRTUAL_ENV=.venv" >> $GITHUB_ENV
+        echo "$PWD/.venv/bin" >> $GITHUB_PATH
     - name: Install Python project dependencies
       run: uv pip install -r requirements.txt
     - name: Install Python dev dependencies
