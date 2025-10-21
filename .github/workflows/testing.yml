@@ -9,17 +9,26 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - name: Clone repo with LFS
+      uses: actions/checkout@v4
       with:
         lfs: true
-    - uses: actions/setup-python@v5
+    - name: Setup Python 3.12
+      uses: actions/setup-python@v5
       with:
         python-version: '3.12'
-    - run: pip install uv
-    - run: uv pip install --system -r requirements.txt
-    - run: uv pip install --system -r requirements-dev.txt
-    - run: pytest tests/ -v
-    - uses: actions/upload-artifact@v4
+    - name: Set up uv
+      uses: astral-sh/setup-uv@v1
+      with:
+        uv-version: 'latest'
+    - name: Install Python project dependencies
+      run: uv pip install -r requirements.txt
+    - name: Install Python dev dependencies
+      run: uv pip install -r requirements-dev.txt
+    - name: Execute tests
+      run: pytest tests/ -v
+    - name: Upload test results
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: test-results
