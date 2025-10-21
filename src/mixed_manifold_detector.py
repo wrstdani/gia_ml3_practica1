@@ -7,9 +7,9 @@ import sys
 import numpy as np
 import sklearn
 import torch
-from autoencoder import Autoencoder
-from linear_autoencoder import LinearAutoencoder
-from utils import read_csv_data
+from src.autoencoder import Autoencoder
+from src.linear_autoencoder import LinearAutoencoder
+from src.utils import read_csv_data
 
 
 class MixedManifoldDetector:

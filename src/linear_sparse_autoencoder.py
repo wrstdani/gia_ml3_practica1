@@ -3,7 +3,7 @@ Autoencoder lineal con regularización Sparse
 """
 
 import torch
-from linear_autoencoder import LinearAutoencoder
+from src.linear_autoencoder import LinearAutoencoder
 
 class LinearSparseAutoencoder(LinearAutoencoder):
     def __init__(self,

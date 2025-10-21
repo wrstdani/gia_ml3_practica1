@@ -3,7 +3,7 @@ Autoencoder lineal
 """
 
 import torch
-from autoencoder import Autoencoder
+from src.autoencoder import Autoencoder
 
 
 class LinearAutoencoder(Autoencoder):
