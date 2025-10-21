@@ -9,7 +9,7 @@ import sklearn
 import torch
 from src.autoencoder import Autoencoder
 from src.linear_autoencoder import LinearAutoencoder
-from src.utils import read_csv_data
+from src.utils import read_mnist
 
 
 class MixedManifoldDetector:
@@ -134,26 +134,8 @@ def main():
         print("- Uso:")
         print("$ python mixed_manifold_detector.py <data_train.csv> <data_test.csv>")
 
-    data_train_path = sys.argv[1]
-    print(f"- Cargando conjunto de datos desde {csv_path}...")
-    data, labels = read_csv_data(csv_path)
-
-    input_dim = data.shape[1]
-    manifold_alg = sklearn.manifold.LocallyLinearEmbedding(n_components=2)
-
-    detector = MixedManifoldDetector(
-        input_dim=input_dim,
-        manifold_alg=manifold_alg
-    )
-
-    output = detector.fit_transform(data)
-
-    print("- Información del output:")
-    print(f"    - Dimensiones del output: {output.shape}")
-    print(f"    - dtype del output: {output.dtype}")
-    print(
-        f"    - Trustworthiness respecto al conjunto original: {sklearn.manifold.trustworthiness(data, output)}")
-
+    path_train, path_test = sys.argv[0], sys.argv[1]
+    data_train, data_test = read_mnist(path_train, path_test)
 
 if __name__ == "__main__":
     main()
