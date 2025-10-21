@@ -47,7 +47,7 @@ def read_glass_identification_csv_file(path2csv: os.PathLike) -> tuple[np.ndarra
 
 def read_mnist(
     path_train: os.PathLike,
-    path_test: os.Pathlike | None = None,
+    path_test: os.PathLike | None = None,
     return_labels: bool = False,
     normalize: bool = True
 ) -> np.ndarray | tuple[np.ndarray, np.ndarray] | tuple[tuple[np.ndarray, np.ndarray], tuple[np.ndarray, np.ndarray]]:
