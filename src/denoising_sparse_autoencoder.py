@@ -3,7 +3,7 @@ Autoencoder con regularizaciones Denoising y Sparse
 """
 
 import torch
-from src.linear_sparse_autoencoder import LinearSparseAutoencoder
+from linear_sparse_autoencoder import LinearSparseAutoencoder
 
 
 class DenoisingSparseAutoencoder(LinearSparseAutoencoder):

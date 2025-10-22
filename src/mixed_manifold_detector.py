@@ -3,13 +3,17 @@ Clase principal del sistema, compuesta por el Autoencoder y el algoritmo
 de manifold learning
 """
 
-import sys
+import os
+import argparse
+import time
+import pickle
 import numpy as np
 import sklearn
+from sklearn.manifold import trustworthiness
 import torch
-from src.autoencoder import Autoencoder
-from src.linear_autoencoder import LinearAutoencoder
-from src.utils import read_mnist
+from autoencoder import Autoencoder
+from linear_autoencoder import LinearAutoencoder
+from utils import load_csv_fashion_mnist, save_experiment, create_subset
 
 
 class MixedManifoldDetector:
@@ -124,15 +128,82 @@ class MixedManifoldDetector:
 
         return np.array(transformed, dtype=np.float32)
 
+    def save(self, path: os.PathLike, name: str = "detector_base.pkl") -> None:
+        detector_path = os.path.join(path, name)
+        if not os.path.exists(path):
+            os.makedirs(path)
+        with open(detector_path, "wb") as f:
+            pickle.dump(self, f)
+
+    @staticmethod
+    def load(path: os.PathLike, name: str = "detector_base.pkl") -> "MixedManifoldDetector":
+        detector_path = os.path.join(path, name)
+        with open(detector_path, "rb") as f:
+            return pickle.load(f)
+
 
 # Código principal
 def main():
-    if len(sys.argv) > 2:
-        print("- Uso:")
-        print("$ python mixed_manifold_detector.py <data_train.csv> <data_test.csv>")
+    parser = argparse.ArgumentParser(description="MixedManifoldDetector CLI")
+    parser.add_argument(
+        "path_train", help="Ruta al archivo CSV que contiene el conjunto de datos de train")
+    parser.add_argument(
+        "path_test", help="Ruta al archivo CSV que contiene el conjunto de datos de test")
+    args = parser.parse_args()
 
-    path_train, path_test = sys.argv[0], sys.argv[1]
-    data_train, data_test = read_mnist(path_train, path_test)
+    # Cargar datos
+    data_train = load_csv_fashion_mnist(args.path_train)
+    data_test = load_csv_fashion_mnist(args.path_test)
+    num_samples_train = 300
+    num_samples_test = 50
+    data_train = create_subset(data_train, num_samples_train)
+    data_test = create_subset(data_test, num_samples_test)
+
+    # Creamos una instancia del detector
+    input_dim = data_train.shape[1]
+
+    train_flag = False
+    models_path = os.path.join("artifacts", "models")
+    if "detector_base.pkl" not in os.listdir(models_path):
+        train_flag = True
+        detector = MixedManifoldDetector(input_dim)
+        # Entrenamos el detector
+        start_fit_train = time.time()
+        detector.fit(data_train)
+        elapsed_fit_train = time.time() - start_fit_train
+    else:
+        detector = MixedManifoldDetector.load(models_path)
+        # Obtenemos la representación 2D de los datos de entrenamiento y test
+    start_transform_train = time.time()
+    output_train = detector.transform(data_train)
+    elapsed_transform_train = time.time() - start_transform_train
+    start_transform_test = time.time()
+    output_test = detector.transform(data_test)
+    elapsed_transform_test = time.time() - start_transform_test
+
+    # Calcular valores de trustworthiness para train y test
+    trustworthiness_train = trustworthiness(data_train, output_train)
+    trustworthiness_test = trustworthiness(data_test, output_test)
+
+    # Guardar datos
+    results_subpath = os.path.join("results", "script")
+    csv_path = os.path.join(results_subpath, "script_output.csv")
+    embeddings_path = os.path.join(results_subpath, "script_embeddings.pkl")
+    save_experiment(
+        csv_path,
+        embeddings_path,
+        "script_test",
+        output_train,
+        output_test,
+        trustworthiness_train,
+        trustworthiness_test,
+        elapsed_fit_train if train_flag else None,
+        elapsed_transform_train,
+        elapsed_transform_test
+    )
+    if train_flag:
+        detector.save(models_path)
+
 
 if __name__ == "__main__":
     main()

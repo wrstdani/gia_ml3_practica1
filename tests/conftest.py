@@ -10,6 +10,7 @@ root_path = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.insert(0, root_path)
 
 # Constantes
+RANDOM_SEED = 42
 AUTOENCODER_TYPES = [
     "LinearAutoencoder",
     "LinearSparseAutoencoder",
@@ -20,6 +21,7 @@ MANIFOLD_ALGORITHMS = [
     "lle"
 ]
 AUTOENCODER_MANIFOLD_COMBINATIONS = list(itertools.product(AUTOENCODER_TYPES, MANIFOLD_ALGORITHMS))
+DATASETS = ["mnist_784", "Fashion-MNIST", "cifar_10_small", "Glass-Classification"]
 
 # Fixtures de rutas
 @pytest.fixture(scope="session")

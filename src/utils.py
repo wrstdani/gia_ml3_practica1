@@ -3,129 +3,109 @@ Utilidades para la ejecución del script principal
 """
 
 import os
-import time
 import pandas as pd
 import numpy as np
 import pickle
-import sklearn
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
+from sklearn.datasets import fetch_openml
+# from mixed_manifold_detector import MixedManifoldDetector
 
 
-def read_mnist_csv_file(path2csv: os.PathLike) -> tuple[np.ndarray, np.ndarray]:
-    """
-    Función auxiliar para leer datos en formato CSV con la estructura
-    que se especifica en el enunciado de la práctica y obtener
-    una matriz de NumPy que los contiene. El dtype de la matriz
-    devuelta será np.float32 y el del vector de labels será np.int32.
-    Args:
-        path2csv (os.PathLike): Ruta al fichero CSV
-    Output:
-        Matriz de NumPy con los datos leídos y vector de NumPy
-        con las labels.
-    """
-    data = pd.read_csv(path2csv)
-    labels_numpy = data["label"].to_numpy(dtype=np.int32, copy=True)
-    data.drop(labels=["label"], axis=1, inplace=True)
-    data_numpy = data.to_numpy(dtype=np.float32, copy=True)
-    return data_numpy, labels_numpy
-
-
-def read_cifar10_batch(path2batch: os.PathLike) -> tuple[np.ndarray, np.ndarray]:
-    with open(path2batch, "rb") as f:
-        loaded = pickle.load(f, encoding="bytes")
-    return np.float32(loaded[b"data"]), np.int32(loaded[b"labels"])
-
-
-def read_glass_identification_csv_file(path2csv: os.PathLike) -> tuple[np.ndarray, np.ndarray]:
-    df = pd.read_csv(path2csv)
-    labels = df.iloc[:, 10].to_numpy(dtype=np.int32, copy=True)
-    df.drop(labels=[df.columns[0], df.columns[10]], axis=1, inplace=True)
-    data = df.to_numpy(dtype=np.float32, copy=True)
-    return data, labels
-
-
-def read_mnist(
-    path_train: os.PathLike,
-    path_test: os.PathLike | None = None,
-    return_labels: bool = False,
-    normalize: bool = True
-) -> np.ndarray | tuple[np.ndarray, np.ndarray] | tuple[tuple[np.ndarray, np.ndarray], tuple[np.ndarray, np.ndarray]]:
-    data_train, labels_train = read_mnist_csv_file(path_train)
-    if normalize:
-        data_train /= 255.0
-    if path_test is not None:
-        data_test, labels_test = read_mnist_csv_file(path_test)
-        if normalize:
-            data_test /= 255.0
-        return ((data_train, labels_train), (data_test, labels_test)) if return_labels else (data_train, data_test)
-    return (data_train, labels_train) if return_labels else data_train
-
-
-def read_cifar10(
-    path_to_batches: os.PathLike,
-    return_labels: bool = False,
-    return_test: bool = True,
-    normalize: bool = True
-) -> np.ndarray | tuple[np.ndarray, np.ndarray] | tuple[tuple[np.ndarray, np.ndarray], tuple[np.ndarray, np.ndarray]]:
-    """
-    Lee los datos del dataset CIFAR-10. Este conjunto de datos está compuesto
-    por 5 batches de entrenamiento (50.000 imágenes) y 1 batch de test (10.000 imágenes).
-    """
-    batches_paths = [os.path.join(path_to_batches, f) for f in os.listdir(
-        path_to_batches) if (f.startswith("data_batch_") or (return_test and f == "test_batch"))]
-    train_batches = []
-    for b in batches_paths:
-        if b.find("test_batch"):
-            data_test, labels_test = read_cifar10_batch(b)
-            if normalize:
-                data_test /= 255.0
-        else:
-            train_batches.append((read_cifar10_batch(b)))
-    data_train = np.vstack([batch[0]
-                           for batch in train_batches], dtype=np.float32)
-    if normalize:
-        data_train /= 255.0
-    labels_train = np.vstack([batch[1]
-                             for batch in train_batches], dtype=np.int32)
-    return (
-        ((data_train, labels_train), (data_test, labels_test)
-         ) if return_labels else (data_train, data_test)
-    ) if return_test else (
-        (data_train, labels_train) if return_labels else data_train
-    )
-
-
-def read_glass_identification(
-    path: os.PathLike,
+def load_image_dataset(
+    name: str,
     return_labels: bool = False,
     return_test: bool = True,
     normalize: bool = True,
-    test_size: float = 0.2,
+    seed: int = 42
+) -> np.ndarray | tuple[np.ndarray, np.ndarray] | tuple[tuple[np.ndarray, np.ndarray], tuple[np.ndarray, np.ndarray]] | None:
+    valid_datasets = set(("mnist_784", "Fashion-MNIST", "cifar_10_small"))
+    if name in valid_datasets:
+        loaded_data = fetch_openml(name)
+        data, labels = loaded_data["data"].to_numpy(
+            dtype=np.float32), loaded_data["target"].to_numpy(dtype=np.int32)
+        data_train, data_test, labels_train, labels_test = train_test_split(
+            data, labels, test_size=0.2, random_state=seed)
+        if normalize:
+            data_train /= 255.0
+            data_test /= 255.0
+        return (
+            ((data_train, labels_train), (data_test, labels_test)
+             ) if return_labels else (data_train, data_test)
+        ) if return_test else (
+            (data_train, labels_train) if return_labels else data_train
+        )
+
+    else:
+        raise ValueError(
+            f"El dataset {name} no está soportado. Utiliza uno de los siguientes: {valid_datasets}")
+
+
+def load_glass_identification_dataset(
+    return_labels: bool = False,
+    return_test: bool = True,
+    normalize: bool = True,
     seed: int = 42
 ) -> np.ndarray | tuple[np.ndarray, np.ndarray] | tuple[tuple[np.ndarray, np.ndarray], tuple[np.ndarray, np.ndarray]]:
-    data, labels = read_glass_identification_csv_file(path)
+    loaded_data = fetch_openml("Glass-Classification")
+    data, labels = loaded_data["data"].iloc[:, 0:8].to_numpy(
+        dtype=np.float32), loaded_data["data"].iloc[:, 9].to_numpy(dtype=np.int32)
+    data_train, data_test, labels_train, labels_test = train_test_split(
+        data, labels, test_size=0.2, random_state=seed)
     if normalize:
         std = StandardScaler()
-        data = std.fit_transform(data)
+        data_train = std.fit_transform(data_train)
+        data_test = std.transform(data_test)
     if return_test:
-        data_train, data_test, labels_train, labels_test = train_test_split(
-            data, labels, test_size=test_size, random_state=seed
-        )
         return ((data_train, labels_train), (data_test, labels_test)) if return_labels else (data_train, data_test)
     else:
-        return (data, labels) if return_labels else data
+        return (data_train, labels_train) if return_labels else data_train
 
 
-def write_test_data(
-    test_name: str,
+def load_csv_fashion_mnist(
     path: os.PathLike,
+    return_labels: bool = False,
+    normalize: bool = True
+):
+    df = pd.read_csv(path)
+    labels = df["label"].to_numpy(dtype=np.int32, copy=True)
+    df.drop(labels=["label"], axis=1, inplace=True)
+    data = df.to_numpy(dtype=np.float32, copy=True)
+    if normalize:
+        data /= 255.0
+    return ((data, labels) if return_labels else data)
+
+
+def create_subset(
+    data: np.ndarray,
+    num_samples: int,
+    labels: np.ndarray | None = None,
+    seed: int = 42
+) -> np.ndarray | tuple[np.ndarray, np.ndarray]:
+    np.random.seed(seed)
+    actual_size = min(num_samples, data.shape[0])
+    indices = np.random.choice(data.shape[0], size=actual_size, replace=False)
+    return ((data[indices, :], labels[indices]) if labels else data[indices, :])
+
+
+def save_experiment(
+    csv_path: os.PathLike,
+    embeddings_path: os.PathLike,
+    test_name: str,
+    embedding_train: np.ndarray,
+    embedding_test: np.ndarray,
     trustworthiness_train: float,
     trustworthiness_test: float,
-    elapsed_fit_train: float,
+    elapsed_fit_train: float | None,
     elapsed_transform_train: float,
     elapsed_transform_test: float
 ) -> None:
+    path_dir_csv = os.path.dirname(csv_path)
+    path_dir_embeddings = os.path.dirname(embeddings_path)
+    if not os.path.exists(path_dir_csv):
+        os.makedirs(path_dir_csv)
+    if not os.path.exists(path_dir_embeddings):
+        os.makedirs(path_dir_embeddings)
     test_dict = {
         "test_id": [test_name],
         "trustworthiness_train": [trustworthiness_train],
@@ -134,22 +114,18 @@ def write_test_data(
         "elapsed_transform_train": [elapsed_transform_train],
         "elapsed_transform_test": [elapsed_transform_test]
     }
+    embeddings_dict = {
+        "embedding_train": embedding_train,
+        "embedding_test": embedding_test
+    }
 
     df = pd.DataFrame(test_dict)
     df.set_index("test_id")
 
-    if os.path.exists(path):
-        df.to_csv(path, mode='a', header=False, index=False)
+    if os.path.exists(csv_path):
+        df.to_csv(csv_path, mode='a', header=False, index=False)
     else:
-        df.to_csv(path, mode='w', index=False)
+        df.to_csv(csv_path, mode='w', index=False)
 
-
-def create_subset(
-    data: np.ndarray,
-    num_samples: int,
-    seed: int = 42
-) -> np.ndarray:
-    np.random.seed(seed)
-    actual_size = min(num_samples, data.shape[0])
-    indices = np.random.choice(data.shape[0], size=actual_size, replace=False)
-    return data[indices]
+    with open(embeddings_path, "wb") as f:
+        pickle.dump(embeddings_dict, f)
