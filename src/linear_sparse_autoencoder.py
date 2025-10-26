@@ -5,7 +5,13 @@ Autoencoder lineal con regularización Sparse
 import torch
 from linear_autoencoder import LinearAutoencoder
 
+
 class LinearSparseAutoencoder(LinearAutoencoder):
+    """
+    Clase que representa un autoencoder lineal con regularización
+    sparse (L1).
+    """
+
     def __init__(self,
                  batch_size: int,
                  input_dim: int,
@@ -19,19 +25,32 @@ class LinearSparseAutoencoder(LinearAutoencoder):
         """
         Constructor de la clase LinearSparseAutoencoder.
         Args:
-            lambda_val (float): También llamado sparsity weight. Controla el peso de la regularización L1.
+            lambda_val (float): También llamado sparsity weight.
+                                Controla el peso de la regularización L1.
         """
-        super(LinearSparseAutoencoder, self).__init__(batch_size, input_dim, latent_dim, lr, epochs, loss_fn, error_threshold, device)
+        super(LinearSparseAutoencoder, self).__init__(batch_size,
+                                                      input_dim,
+                                                      latent_dim,
+                                                      lr,
+                                                      epochs,
+                                                      loss_fn,
+                                                      error_threshold,
+                                                      device)
         self.lambda_val: float = lambda_val
 
-    def _compute_additional_loss(self, x_batch: torch.Tensor, z: torch.Tensor, output: torch.Tensor) -> float:
+    def _compute_additional_loss(
+        self,
+        x_batch: torch.Tensor,
+        z: torch.Tensor,
+        output: torch.Tensor
+    ) -> float:
         """
         Calcula el término de regularización L1.
-        Fórmula: L_sparse = lambda_val * mean(|z|)
         Args:
             x_batch (torch.Tensor): Batch actual del entrenamiento.
             z (torch.Tensor): Embedding del batch actual del entrenamiento.
-            output (torch.Tensor): Output del modelo (por si quiere tenerse en cuenta el error de reconstrucción)
+            output (torch.Tensor): Output del modelo (por si quiere tenerse
+                                   en cuenta el error de reconstrucción)
         Output:
             Término de regularización L1
         """

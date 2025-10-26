@@ -7,6 +7,10 @@ from linear_sparse_autoencoder import LinearSparseAutoencoder
 
 
 class DenoisingSparseAutoencoder(LinearSparseAutoencoder):
+    """
+    Implementación de autoencoder lineal con regularizaciones denoising y sparse.
+    """
+
     def __init__(self,
                  batch_size: int,
                  input_dim: int,
@@ -17,17 +21,19 @@ class DenoisingSparseAutoencoder(LinearSparseAutoencoder):
                  error_threshold: float = 0.0,
                  device: str = "cpu",
                  lambda_val: float = 1e-3,
-                 noise_factor: float = 0.3):
+                 noise_factor: float = 0.3
+                 ):
         """
         Constructor de la clase DenoisingSparseAutoencoder.
         Args:
-            lambda_val (float): También llamado sparsity weight. Controla el peso de la regularización L1.
-            noise_factor (float): Porcentaje de ruido que se introducirá a los datos de entrenamiento.
+            lambda_val (float): También llamado sparsity weight.
+                                Controla el peso de la regularización L1.
+            noise_factor (float): Porcentaje de ruido que se introducirá
+                                  a los datos de entrenamiento.
         """
 
-        super().__init__(batch_size, input_dim, latent_dim,
-                         lr, epochs, loss_fn, error_threshold, device)
-        self.lambda_val: float = lambda_val
+        super(DenoisingSparseAutoencoder, self).__init__(batch_size, input_dim, latent_dim,
+                                                         lr, epochs, loss_fn, error_threshold, device, lambda_val)
         self.noise_factor: float = noise_factor
 
     def _add_noise(self, x_batch: torch.Tensor) -> torch.Tensor:

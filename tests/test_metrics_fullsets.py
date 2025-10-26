@@ -1,31 +1,18 @@
-"""
-Testing para recoger métricas y representaciones de subconjuntos de datos
-"""
-
 import os
 import pytest
 import time
 from sklearn.manifold import trustworthiness
 from tests.conftest import (AUTOENCODER_MANIFOLD_COMBINATIONS,
-                            RANDOM_SEED,
                             DATASET_FIXTURES)
-from src.utils import save_experiment, create_subset
+from src.utils import save_experiment
 
 
 @pytest.mark.parametrize("dataset_name,dataset_fixture", DATASET_FIXTURES.items())
 @pytest.mark.parametrize("autoencoder_type,manifold_alg", AUTOENCODER_MANIFOLD_COMBINATIONS)
-@pytest.mark.parametrize("size_label,train_subset_size,test_subset_size", [
-    ("small", 300, 50),
-    ("medium_large", 1000, 200),
-    ("large", 5000, 1000),
-])
-def test_metrics_subsets(
+def test_metrics_fullsets(
     dataset_name,
     autoencoder_factory,
     mixed_manifold_detector_factory,
-    size_label,
-    train_subset_size,
-    test_subset_size,
     autoencoder_type,
     manifold_alg,
     results_path,
@@ -33,36 +20,31 @@ def test_metrics_subsets(
     request
 ):
     data_train, data_test = request.getfixturevalue(dataset_fixture)
-    data_train_small = create_subset(
-        data_train, num_samples=train_subset_size, seed=RANDOM_SEED)
-    data_test_small = create_subset(
-        data_test, num_samples=test_subset_size, seed=RANDOM_SEED)
 
     autoencoder = autoencoder_factory(
-        autoencoder_type, data_train_small.shape[1])
+        autoencoder_type, data_train.shape[1])
     detector = mixed_manifold_detector_factory(
-        data_train_small.shape[1], manifold_alg, autoencoder=autoencoder)
+        data_test.shape[1], manifold_alg, autoencoder=autoencoder)
 
     start_fit_train = time.time()
-    detector.fit(data_train_small)
+    detector.fit(data_train)
     elapsed_fit_train = time.time() - start_fit_train
 
     start_transform_train = time.time()
-    output_train = detector.transform(data_train_small)
+    output_train = detector.transform(data_train)
     elapsed_transform_train = time.time() - start_transform_train
-    trustworthiness_train = trustworthiness(data_train_small, output_train)
+    trustworthiness_train = trustworthiness(data_train, output_train)
 
     start_transform_test = time.time()
-    output_test = detector.transform(data_test_small)
+    output_test = detector.transform(data_test)
     elapsed_transform_test = time.time() - start_transform_test
-    trustworthiness_test = trustworthiness(data_test_small, output_test)
+    trustworthiness_test = trustworthiness(data_test, output_test)
 
     results_subpath = os.path.join(results_path, f"{dataset_name}")
     os.makedirs(results_subpath, exist_ok=True)
-    test_name = f"{dataset_name}_{size_label}_{autoencoder_type}_{manifold_alg}".lower()
+    test_name = f"{dataset_name}_fullset_{autoencoder_type}_{manifold_alg}".lower()
     csv_filename = f"tests_{dataset_name}_output.csv"
-    embeddings_filename = f"{dataset_name}_{size_label}_{autoencoder_type}_{manifold_alg}.pkl".lower(
-    )
+    embeddings_filename = f"{dataset_name}_fullset_{autoencoder_type}_{manifold_alg}.pkl".lower()
 
     save_experiment(
         os.path.join(results_subpath, csv_filename),

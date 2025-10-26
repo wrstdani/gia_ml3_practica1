@@ -1,3 +1,7 @@
+"""
+Testing para dimensionalidad de la salida de los autoencoders y los detectores
+"""
+
 import pytest
 from tests.conftest import AUTOENCODER_TYPES, MANIFOLD_ALGORITHMS
 

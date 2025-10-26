@@ -10,18 +10,21 @@ import pickle
 import numpy as np
 import sklearn
 from sklearn.manifold import trustworthiness
-import torch
 from autoencoder import Autoencoder
 from linear_autoencoder import LinearAutoencoder
 from utils import load_csv_fashion_mnist, save_experiment, create_subset
 
 
 class MixedManifoldDetector:
+    """
+    Clase que representa el sistema principal de la práctica.
+    Se compone de un autoencoder y un algoritmo de manifold learning clásico.
+    """
     def __init__(self,
                  input_dim: int | None = None,
                  autoencoder: Autoencoder | None = None,
                  manifold_alg: sklearn.base.TransformerMixin | None = None,
-                 ):
+        ):
         """
         Constructor de la clase principal del sistema.
         Args:
@@ -67,15 +70,16 @@ class MixedManifoldDetector:
         """
         self.train_data = data.copy()
 
-        self.autoencoder.fit(self.train_data)  # Entrenamos el autoencoder
-        # Obtenemos los embeddings con el autoencoder entrenado
+        self.autoencoder.fit(self.train_data)  # Entrenamos el autoencoder.
+        # Obtenemos los embeddings con el autoencoder entrenado.
         self.train_embeddings = self.autoencoder.transform(self.train_data)
         print("- Ejecutando algoritmo de manifold learning sobre los embeddings...")
         self.train_manifold = self.manifold_alg.fit_transform(
-            self.train_embeddings)  # Obtenemos la representación 2D de los embeddings
-        # Hacemos que la instancia de NearestNeighbors para los patrones de entrenamiento los aprenda
+            self.train_embeddings)  # Obtenemos la representación 2D de los embeddings.
+        # Hacemos que la instancia de NearestNeighbors para los patrones de entrenamiento
+        # los aprenda.
         self.knn_train_data.fit(self.train_data)
-        # Hacemos que la instancia de NearestNeighbors para los embeddings los aprenda
+        # Hacemos que la instancia de NearestNeighbors para los embeddings los aprenda.
         self.knn_embeddings.fit(self.train_embeddings)
 
         return self.train_manifold.copy()
@@ -87,13 +91,13 @@ class MixedManifoldDetector:
             train_data (np.ndarray): Conjunto de datos de entrenamiento.
         """
         self.fit_transform(
-            train_data)  # Ejecutamos fit_transform() sin devolver el resultado
+            train_data)  # Ejecutamos fit_transform() sin devolver el resultado.
 
     def transform(self,
                   data: np.ndarray,
                   k: int = 5,
                   threshold: float = 1e-9
-                  ) -> np.ndarray:
+        ) -> np.ndarray:
         """
         Método que, en caso de que los datos sean distintos a los de entrenamiento
         aplica interpolación con los k embeddings más cercanos al obtenido con
@@ -129,6 +133,12 @@ class MixedManifoldDetector:
         return np.array(transformed, dtype=np.float32)
 
     def save(self, path: os.PathLike, name: str = "detector_base.pkl") -> None:
+        """
+        Permite guardar una instancia de la clase en un fichero .pkl.
+        Args:
+            path (os.PathLike): Directorio en que se almacenará el fichero .pkl.
+            name (str): Nombre del fichero .pkl (por defecto es detector_base.pkl).
+        """
         detector_path = os.path.join(path, name)
         if not os.path.exists(path):
             os.makedirs(path)
@@ -137,13 +147,23 @@ class MixedManifoldDetector:
 
     @staticmethod
     def load(path: os.PathLike, name: str = "detector_base.pkl") -> "MixedManifoldDetector":
+        """
+        Permite cargar una instancia de la clase desde un fichero .pkl.
+        Args:
+            path (os.PathLike): Directorio en que se encuentra el fichero .pkl.
+            name (str): Nombre del fichero .pkl (por defecto es detector_base.pkl).
+        Output:
+            Detector obtenido mediante la lectura del fichero .pkl
+        """
         detector_path = os.path.join(path, name)
         with open(detector_path, "rb") as f:
             return pickle.load(f)
 
 
-# Código principal
 def main():
+    """
+    Código principal
+    """
     parser = argparse.ArgumentParser(description="MixedManifoldDetector CLI")
     parser.add_argument(
         "path_train", help="Ruta al archivo CSV que contiene el conjunto de datos de train")
@@ -162,18 +182,20 @@ def main():
     # Creamos una instancia del detector
     input_dim = data_train.shape[1]
 
-    train_flag = False
-    models_path = os.path.join("artifacts", "models")
-    if "detector_base.pkl" not in os.listdir(models_path):
-        train_flag = True
+    elapsed_fit_train = None
+    results_subpath = os.path.join("artifacts", "script")
+    models_path = os.path.join(results_subpath, "models")
+    csv_path = os.path.join(results_subpath, "script_output.csv")
+    embeddings_path = os.path.join(results_subpath, "script_embeddings.pkl")
+    if not os.path.exists(models_path):
         detector = MixedManifoldDetector(input_dim)
         # Entrenamos el detector
         start_fit_train = time.time()
         detector.fit(data_train)
         elapsed_fit_train = time.time() - start_fit_train
     else:
-        detector = MixedManifoldDetector.load(models_path)
-        # Obtenemos la representación 2D de los datos de entrenamiento y test
+        detector = MixedManifoldDetector.load(os.path.join(models_path, "detector_base.pkl"))
+    # Obtenemos la representación 2D de los datos de entrenamiento y test
     start_transform_train = time.time()
     output_train = detector.transform(data_train)
     elapsed_transform_train = time.time() - start_transform_train
@@ -186,9 +208,6 @@ def main():
     trustworthiness_test = trustworthiness(data_test, output_test)
 
     # Guardar datos
-    results_subpath = os.path.join("results", "script")
-    csv_path = os.path.join(results_subpath, "script_output.csv")
-    embeddings_path = os.path.join(results_subpath, "script_embeddings.pkl")
     save_experiment(
         csv_path,
         embeddings_path,
@@ -197,13 +216,13 @@ def main():
         output_test,
         trustworthiness_train,
         trustworthiness_test,
-        elapsed_fit_train if train_flag else None,
+        elapsed_fit_train,
         elapsed_transform_train,
         elapsed_transform_test
     )
-    if train_flag:
-        detector.save(models_path)
 
+    if elapsed_fit_train:
+        detector.save(models_path)
 
 if __name__ == "__main__":
     main()

@@ -1,3 +1,7 @@
+"""
+Configuración y constantes para testing
+"""
+
 import os
 import sys
 import pytest
@@ -14,14 +18,41 @@ RANDOM_SEED = 42
 AUTOENCODER_TYPES = [
     "LinearAutoencoder",
     "LinearSparseAutoencoder",
-    "DenoisingSparseAutoencoder"
+    "DenoisingSparseAutoencoder",
+    "VariationalAutoencoder"
 ]
 MANIFOLD_ALGORITHMS = [
     "tsne",
     "lle"
 ]
 AUTOENCODER_MANIFOLD_COMBINATIONS = list(itertools.product(AUTOENCODER_TYPES, MANIFOLD_ALGORITHMS))
-DATASETS = ["mnist_784", "Fashion-MNIST", "cifar_10_small", "Glass-Classification"]
+DATASET_NAMES = ["mnist_784", "Fashion-MNIST", "cifar_10_small", "Glass-Classification"]
+DATASET_FIXTURES = dict(zip(DATASET_NAMES, ("mnist_data", "fashion_mnist_data", "cifar10_data", "glass_data")))
+
+# Fixtures para cargar los conjuntos de datos
+@pytest.fixture(scope="session")
+def mnist_data():
+    from src.utils import load_image_dataset
+    data_train, data_test = load_image_dataset("mnist_784", seed=RANDOM_SEED)
+    return data_train, data_test
+
+@pytest.fixture(scope="session")
+def fashion_mnist_data():
+    from src.utils import load_image_dataset
+    data_train, data_test = load_image_dataset("Fashion-MNIST", seed=RANDOM_SEED)
+    return data_train, data_test
+
+@pytest.fixture(scope="session")
+def cifar10_data():
+    from src.utils import load_image_dataset
+    data_train, data_test = load_image_dataset("cifar_10_small", seed=RANDOM_SEED)
+    return data_train, data_test
+
+@pytest.fixture(scope="session")
+def glass_data():
+    from src.utils import load_glass_identification_dataset
+    data_train, data_test = load_glass_identification_dataset(seed=RANDOM_SEED)
+    return data_train, data_test
 
 # Fixtures de rutas
 @pytest.fixture(scope="session")
@@ -36,7 +67,7 @@ def results_path():
     """
     Ruta al directorio de resultados
     """
-    path = os.path.abspath(os.path.join(root_path, "results"))
+    path = os.path.abspath(os.path.join(root_path, "artifacts"))
     os.makedirs(path, exist_ok=True)
     return path
 
@@ -85,6 +116,10 @@ def autoencoder_factory():
                 lambda_val=kwargs.get("lambda_val", 1e-3),
                 noise_factor=kwargs.get("noise_factor", 0.3)
             )
+        
+        elif autoencoder_type == "VariationalAutoencoder":
+            from src.variational_autoencoder import VariationalAutoencoder
+            return VariationalAutoencoder(**params)
         
         else:
             raise ValueError(f"Tipo de autoencoder desconocido: {autoencoder_type}")
