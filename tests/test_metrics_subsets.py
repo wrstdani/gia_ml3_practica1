@@ -6,10 +6,10 @@ import os
 import pytest
 import time
 from sklearn.manifold import trustworthiness
-from tests.conftest import (AUTOENCODER_MANIFOLD_COMBINATIONS,
-                            RANDOM_SEED,
-                            DATASET_FIXTURES)
-from src.utils import save_experiment, create_subset
+from conftest import (AUTOENCODER_MANIFOLD_COMBINATIONS,
+                      RANDOM_SEED,
+                      DATASET_FIXTURES)
+from utils import save_experiment, create_subset
 
 
 @pytest.mark.parametrize("dataset_name,dataset_fixture", DATASET_FIXTURES.items())

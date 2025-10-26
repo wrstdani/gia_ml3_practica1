@@ -2,9 +2,9 @@ import os
 import pytest
 import time
 from sklearn.manifold import trustworthiness
-from tests.conftest import (AUTOENCODER_MANIFOLD_COMBINATIONS,
-                            DATASET_FIXTURES)
-from src.utils import save_experiment
+from conftest import (AUTOENCODER_MANIFOLD_COMBINATIONS,
+                      DATASET_FIXTURES)
+from utils import save_experiment
 
 
 @pytest.mark.parametrize("dataset_name,dataset_fixture", DATASET_FIXTURES.items())
@@ -44,7 +44,8 @@ def test_metrics_fullsets(
     os.makedirs(results_subpath, exist_ok=True)
     test_name = f"{dataset_name}_fullset_{autoencoder_type}_{manifold_alg}".lower()
     csv_filename = f"tests_{dataset_name}_output.csv"
-    embeddings_filename = f"{dataset_name}_fullset_{autoencoder_type}_{manifold_alg}.pkl".lower()
+    embeddings_filename = f"{dataset_name}_fullset_{autoencoder_type}_{manifold_alg}.pkl".lower(
+    )
 
     save_experiment(
         os.path.join(results_subpath, csv_filename),
