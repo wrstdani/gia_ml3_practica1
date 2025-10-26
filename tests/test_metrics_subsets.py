@@ -13,7 +13,7 @@ from utils import save_experiment, create_subset
 
 
 @pytest.mark.fast
-@pytest.mark.parametrize("dataset_name,dataset_fixture", DATASET_FIXTURES.items())
+@pytest.mark.parametrize("dataset_name,dataset_fixture", DATASET_FIXTURES)
 @pytest.mark.parametrize("autoencoder_type,manifold_alg", AUTOENCODER_MANIFOLD_COMBINATIONS)
 @pytest.mark.parametrize("size_label,train_subset_size,test_subset_size", [
     ("small", 300, 50),

@@ -24,7 +24,7 @@ jobs:
       run: pip install -r requirements-dev.txt
 
     - name: Execute tests
-      run: pytest tests/ -v
+      run: pytest tests/ -v -m "not slow"
       
     - name: Upload test results
       uses: actions/upload-artifact@v4

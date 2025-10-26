@@ -30,8 +30,8 @@ AUTOENCODER_MANIFOLD_COMBINATIONS = list(
     itertools.product(AUTOENCODER_TYPES, MANIFOLD_ALGORITHMS))
 DATASET_NAMES = ["mnist_784", "Fashion-MNIST",
                  "cifar_10_small", "Glass-Classification"]
-DATASET_FIXTURES = dict(zip(DATASET_NAMES, ("mnist_data",
-                        "fashion_mnist_data", "cifar10_data", "glass_data")))
+DATASET_FIXTURES = tuple(zip(DATASET_NAMES, ("mnist_data",
+                                             "fashion_mnist_data", "cifar10_data", "glass_data")))
 
 # Fixtures para cargar los conjuntos de datos
 
