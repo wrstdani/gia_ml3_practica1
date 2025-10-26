@@ -7,6 +7,7 @@ from conftest import (AUTOENCODER_MANIFOLD_COMBINATIONS,
 from utils import save_experiment
 
 
+@pytest.mark.slow
 @pytest.mark.parametrize("dataset_name,dataset_fixture", DATASET_FIXTURES.items())
 @pytest.mark.parametrize("autoencoder_type,manifold_alg", AUTOENCODER_MANIFOLD_COMBINATIONS)
 def test_metrics_fullsets(

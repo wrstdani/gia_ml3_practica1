@@ -6,6 +6,7 @@ import pytest
 from conftest import AUTOENCODER_TYPES, MANIFOLD_ALGORITHMS
 
 
+@pytest.mark.fast
 @pytest.mark.parametrize("autoencoder_type", AUTOENCODER_TYPES)
 def test_output_dimensionality_autoencoder(autoencoder_type, autoencoder_factory, sample_data):
     """
@@ -22,6 +23,7 @@ def test_output_dimensionality_autoencoder(autoencoder_type, autoencoder_factory
         f"Según el modelo, la dimensión de las representaciones latentes debería ser {autoencoder.latent_dim} y el output es {output.shape[1]}-dimensional."
 
 
+@pytest.mark.fast
 @pytest.mark.parametrize("manifold_alg", MANIFOLD_ALGORITHMS)
 def test_output_dimensionality_mixed_manifold_detector(manifold_alg, mixed_manifold_detector_factory, sample_data):
     """
