@@ -21,6 +21,7 @@ class LinearSparseAutoencoder(LinearAutoencoder):
                  loss_fn: torch.nn.Module | None = None,
                  error_threshold: float = 0.0,
                  device: str = "cpu",
+                 seed: int = 42,
                  lambda_val: float = 1e-3):
         """
         Constructor de la clase LinearSparseAutoencoder.
@@ -35,23 +36,24 @@ class LinearSparseAutoencoder(LinearAutoencoder):
                                                       epochs,
                                                       loss_fn,
                                                       error_threshold,
-                                                      device)
+                                                      device,
+                                                      seed)
         self.lambda_val: float = lambda_val
 
     def _compute_additional_loss(
         self,
         x_batch: torch.Tensor,
         z: torch.Tensor,
-        output: torch.Tensor
-    ) -> float:
+        recon: torch.Tensor
+    ) -> torch.Tensor:
         """
         Calcula el término de regularización L1.
         Args:
             x_batch (torch.Tensor): Batch actual del entrenamiento.
             z (torch.Tensor): Embedding del batch actual del entrenamiento.
-            output (torch.Tensor): Output del modelo (por si quiere tenerse
+            recon (torch.Tensor): Output del modelo (por si quiere tenerse
                                    en cuenta el error de reconstrucción)
         Output:
             Término de regularización L1
         """
-        return self.lambda_val * torch.mean(torch.abs(z))
+        return torch.tensor(self.lambda_val * torch.mean(torch.abs(z)), dtype=torch.float32, device=self.device, requires_grad=True)

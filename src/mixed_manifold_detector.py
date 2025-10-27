@@ -15,7 +15,7 @@ from linear_autoencoder import LinearAutoencoder
 from utils import load_csv_fashion_mnist, save_experiment, create_subset
 
 
-class MixedManifoldDetector:
+class MixedManifoldDetector(sklearn.base.TransformerMixin):
     """
     Clase que representa el sistema principal de la práctica.
     Se compone de un autoencoder y un algoritmo de manifold learning clásico.
@@ -34,6 +34,8 @@ class MixedManifoldDetector:
             manifold_alg (sklearn.base.TransformerMixin): Algoritmo clásico de manifold learning para
                                                           obtener representaciones 2D.
         """
+        super(MixedManifoldDetector, self).__init__()
+
         if input_dim is None and autoencoder is None:
             raise ValueError(
                 "input_dim no puede ser NoneType si no se proporciona un autoencoder")
@@ -51,13 +53,14 @@ class MixedManifoldDetector:
         else:
             self.manifold_alg = manifold_alg
 
-        self.train_data = None
-        self.train_embeddings = None
-        self.train_manifold = None
+        self._train_data = None
+        self._train_embeddings = None
+        self._train_manifold = None
         # NearestNeighbors para los patrones de entrenamiento que devuelve el vecino más cercano
-        self.knn_train_data = sklearn.neighbors.NearestNeighbors(n_neighbors=1)
+        self._knn_train_data = sklearn.neighbors.NearestNeighbors(
+            n_neighbors=1)
         # NearestNeighbors para los embeddings
-        self.knn_embeddings = sklearn.neighbors.NearestNeighbors()
+        self._knn_embeddings = sklearn.neighbors.NearestNeighbors()
 
     def fit_transform(self, data: np.ndarray) -> np.ndarray:
         """
@@ -69,32 +72,32 @@ class MixedManifoldDetector:
         Output:
             Representación 2D de la representación latente
         """
-        self.train_data = data.copy()
+        self._train_data = data.copy()
 
-        self.autoencoder.fit(self.train_data)  # Entrenamos el autoencoder.
+        self.autoencoder.fit(self._train_data)  # Entrenamos el autoencoder.
         # Obtenemos los embeddings con el autoencoder entrenado.
-        self.train_embeddings = self.autoencoder.transform(self.train_data)
+        self._train_embeddings = self.autoencoder.transform(self._train_data)
         print("- Ejecutando algoritmo de manifold learning sobre los embeddings...")
-        self.train_manifold = self.manifold_alg.fit_transform(
+        self._train_manifold = self.manifold_alg.fit_transform(
             # Obtenemos la representación 2D de los embeddings.
-            self.train_embeddings)
+            self._train_embeddings)
         # Hacemos que la instancia de NearestNeighbors para los patrones de entrenamiento
         # los aprenda.
-        self.knn_train_data.fit(self.train_data)
+        self._knn_train_data.fit(self._train_data)
         # Hacemos que la instancia de NearestNeighbors para los embeddings los aprenda.
-        self.knn_embeddings.fit(self.train_embeddings)
+        self._knn_embeddings.fit(self._train_embeddings)
 
-        return self.train_manifold.copy()
+        return self._train_manifold.copy()
 
-    def fit(self, train_data: np.ndarray):
+    def fit(self, data: np.ndarray) -> None:
         """
         Método que ejecuta fit_transform() sin devolver nada.
         Args:
-            train_data (np.ndarray): Conjunto de datos de entrenamiento.
+            data (np.ndarray): Conjunto de datos de entrenamiento.
         """
         self.fit_transform(
             # Ejecutamos fit_transform() sin devolver el resultado.
-            train_data)
+            data)
 
     def transform(self,
                   data: np.ndarray,
@@ -117,20 +120,20 @@ class MixedManifoldDetector:
         new_embeddings = self.autoencoder.transform(data)
 
         for pattern, embedding in zip(data, new_embeddings):
-            train_data_distances, train_data_indices = self.knn_train_data.kneighbors(
+            train_data_distances, train_data_indices = self._knn_train_data.kneighbors(
                 [pattern])  # Obtener el vecino más cercano al nuevo patrón
             # Si la distancia es menor que el umbral
             if train_data_distances[0][0] < threshold:
                 # Se determina que se trata del mismo patrón
                 transformed.append(
-                    self.train_manifold[train_data_indices[0][0]])
+                    self._train_manifold[train_data_indices[0][0]])
             else:  # Si son distintos patrones
                 # Obtener los k vecinos más cercanos al embedding del nuevo patrón
-                _, embedding_indices = self.knn_embeddings.kneighbors(
+                _, embedding_indices = self._knn_embeddings.kneighbors(
                     [embedding], n_neighbors=k)
                 # Calcular embedding promedio con los vecinos obtenidos
                 mean_embedding = np.mean(
-                    self.train_manifold[embedding_indices[0]], axis=0)
+                    self._train_manifold[embedding_indices[0]], axis=0)
                 transformed.append(mean_embedding)
 
         return np.array(transformed, dtype=np.float32)
@@ -177,8 +180,8 @@ def main():
     # Cargar datos
     data_train, labels_train = load_csv_fashion_mnist(args.path_train, True)
     data_test, labels_test = load_csv_fashion_mnist(args.path_test, True)
-    num_samples_train = 300
-    num_samples_test = 50
+    num_samples_train = 5000
+    num_samples_test = 1000
     data_train, labels_train = create_subset(
         data_train, num_samples_train, labels_train)
     data_test, labels_test = create_subset(
@@ -186,22 +189,20 @@ def main():
 
     # Creamos una instancia del detector
     input_dim = data_train.shape[1]
-
     elapsed_fit_train = None
     results_subpath = os.path.join("artifacts", "script")
-    models_path = os.path.join(results_subpath, "models")
+    for f in os.listdir(results_subpath):
+        os.remove(os.path.join(results_subpath, f))
     csv_path = os.path.join(results_subpath, "script_output.csv")
     embeddings_path = os.path.join(results_subpath, "script_embeddings.pkl")
     labels_path = os.path.join(results_subpath, "script_labels.pkl")
-    if not os.path.exists(models_path):
-        detector = MixedManifoldDetector(input_dim)
-        # Entrenamos el detector
-        start_fit_train = time.time()
-        detector.fit(data_train)
-        elapsed_fit_train = time.time() - start_fit_train
-    else:
-        detector = MixedManifoldDetector.load(
-            os.path.join(models_path, "detector_base.pkl"))
+    detector = MixedManifoldDetector(input_dim)
+
+    # Entrenamos el detector
+    start_fit_train = time.time()
+    detector.fit(data_train)
+    elapsed_fit_train = time.time() - start_fit_train
+
     # Obtenemos la representación 2D de los datos de entrenamiento y test
     start_transform_train = time.time()
     output_train = detector.transform(data_train)
@@ -231,9 +232,11 @@ def main():
         elapsed_transform_test
     )
 
-    if elapsed_fit_train:
-        detector.save(models_path)
+    detector.save(results_subpath)
 
 
 if __name__ == "__main__":
+    """
+    Ejecutar código principal
+    """
     main()

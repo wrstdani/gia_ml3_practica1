@@ -6,10 +6,12 @@ import torch
 import torch.nn as nn
 from autoencoder import Autoencoder
 
+
 class VariationalAutoencoder(Autoencoder):
     """
     Representa un autoencoder variacional.
     """
+
     def __init__(self,
                  batch_size: int,
                  input_dim: int,
@@ -18,8 +20,9 @@ class VariationalAutoencoder(Autoencoder):
                  epochs: int = 100,
                  loss_fn: torch.nn.Module | None = None,
                  error_threshold: float = 0.0,
-                 device: str = "cpu"
-        ):
+                 device: str | None = None,
+                 seed: int = 42
+                 ):
         """
         Constructor de la clase LinearAutoencoder.
         Args:
@@ -34,8 +37,8 @@ class VariationalAutoencoder(Autoencoder):
             device (str): Dispositivo en que entrenar el modelo.
         """
         super(VariationalAutoencoder, self).__init__(batch_size, input_dim, latent_dim,
-                         lr, epochs, loss_fn, error_threshold, device)
-        
+                                                     lr, epochs, loss_fn, error_threshold, device)
+
     def _build_encoder(self) -> None:
         self.encoder = nn.Sequential(
             nn.Linear(in_features=self.input_dim, out_features=128),
@@ -44,7 +47,8 @@ class VariationalAutoencoder(Autoencoder):
             nn.ReLU()
         )
         self.mu_layer = nn.Linear(in_features=64, out_features=self.latent_dim)
-        self.logvar_layer = nn.Linear(in_features=64, out_features=self.latent_dim)
+        self.logvar_layer = nn.Linear(
+            in_features=64, out_features=self.latent_dim)
 
     def _build_decoder(self) -> None:
         self.decoder = nn.Sequential(
@@ -80,16 +84,45 @@ class VariationalAutoencoder(Autoencoder):
         logvar = self.logvar_layer(encoder_output)
         z = self._sample(mu, logvar)
         return (z, self.decoder(z))
-    
+
+    def _compute_additional_loss(
+        self,
+        x_batch: torch.Tensor,
+        z: torch.Tensor,
+        recon: torch.Tensor
+    ) -> torch.Tensor:
+        """
+        Se utiliza para calcular un término adicional para la función de pérdida.
+        Args:
+            x_batch (torch.Tensor): Batch de datos de entrada.
+            z (torch.Tensor): Representación latente del batch.
+            recon (torch.Tensor): Reconstrucción del batch.
+        """
+
+        return torch.tensor(0.0, device=self.device)
+
+    def _add_noise(self, x_batch: torch.Tensor) -> torch.Tensor:
+        """
+        Se utiliza para añadir ruido en autoencoders con regularización denoising.
+        Requiere que se implemente.
+        Args:
+            x_batch (torch.Tensor): Batch del conjunto de entrenamiento al que añadir ruido.
+        Output:
+            Batch de datos con ruido añadido.
+        """
+        return x_batch
+
     def transform(self, data: np.ndarray) -> np.ndarray | None:
         if not self.trained:
             return None
-        
+
         self.eval()
         with torch.no_grad():
-            data_tensor = torch.tensor(data, dtype=torch.float32, device=self.device)
+            data_tensor = torch.tensor(
+                data, dtype=torch.float32, device=self.device)
             encoder_output = self.encoder(data_tensor)
-            mu, logvar = self.mu_layer(encoder_output), self.logvar_layer(encoder_output)
+            mu, logvar = self.mu_layer(
+                encoder_output), self.logvar_layer(encoder_output)
 
             z = self._sample(mu, logvar)
         return z.cpu().numpy()

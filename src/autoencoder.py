@@ -70,13 +70,7 @@ class Autoencoder(torch.nn.Module, ABC):
         """
         pass
 
-    def _build_architecture(self):
-        """
-        Construye la arquitectura completa llamando a _build_encoder() y _build_decoder().
-        """
-        self._build_encoder()
-        self._build_decoder()
-
+    @abstractmethod
     def _forward(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
         """
         Forward del autoencoder (red neuronal).
@@ -85,8 +79,55 @@ class Autoencoder(torch.nn.Module, ABC):
         Output:
             Embedding y reconstrucción de la entrada.
         """
-        z = self.encoder(x)
-        return (z, self.decoder(z))
+        pass
+
+    @abstractmethod
+    def _compute_additional_loss(
+        self,
+        x_batch: torch.Tensor,
+        z: torch.Tensor,
+        recon: torch.Tensor
+    ) -> torch.Tensor:
+        """
+        Se utiliza para calcular un término adicional para la función de pérdida.
+        Args:
+            x_batch (torch.Tensor): Batch de datos de entrada.
+            z (torch.Tensor): Representación latente del batch.
+            recon (torch.Tensor): Reconstrucción del batch.
+        """
+        pass
+
+    @abstractmethod
+    def _add_noise(self, x_batch: torch.Tensor) -> torch.Tensor:
+        """
+        Se utiliza para añadir ruido en autoencoders con regularización denoising.
+        Requiere que se implemente.
+        Args:
+            x_batch (torch.Tensor): Batch del conjunto de entrenamiento al que añadir ruido.
+        Output:
+            Batch de datos con ruido añadido.
+        """
+        pass
+
+    @abstractmethod
+    def transform(self, data: np.ndarray) -> np.ndarray | None:
+        """
+        Requiere que el autoencoder haya sido entrenado previamente
+        con `fit()`. Se utiliza para obtener la representación latente
+        (salida del encoder) del autoencoder de un conjunto de datos.
+        Args:
+            data (np.ndarray): Datos de los cuales se desea obtener el embedding.
+        Output:
+            Representación latente de la entrada.
+        """
+        pass
+
+    def _build_architecture(self) -> None:
+        """
+        Construye la arquitectura completa llamando a _build_encoder() y _build_decoder().
+        """
+        self._build_encoder()
+        self._build_decoder()
 
     def _train_autoencoder(self, x: torch.Tensor) -> None:
         """
@@ -144,7 +185,7 @@ class Autoencoder(torch.nn.Module, ABC):
             progress_bar.close()
             print(f"- Entrenamiento completado. Pérdida final: {avg_loss:.4f}")
 
-    def _train_batch(self, x_batch: torch.Tensor, optimizer: torch.optim.Optimizer):
+    def _train_batch(self, x_batch: torch.Tensor, optimizer: torch.optim.Optimizer) -> None:
         # Ponemos a cero los gradientes de los parámetros al comenzar a entrenar con un batch
         optimizer.zero_grad()
 
@@ -166,33 +207,6 @@ class Autoencoder(torch.nn.Module, ABC):
         optimizer.step()
         return total_loss.item()
 
-    def _compute_additional_loss(
-        self,
-        x_batch: torch.Tensor,
-        z: torch.Tensor,
-        recon: torch.Tensor
-    ) -> torch.Tensor:
-        """
-        Se utiliza para calcular un término adicional para la función de pérdida.
-        Args:
-            x_batch (torch.Tensor): Batch de datos de entrada.
-            z (torch.Tensor): Representación latente del batch.
-            recon (torch.Tensor): Reconstrucción del batch.
-        """
-
-        return torch.tensor(0.0, device=self.device)
-
-    def _add_noise(self, x_batch: torch.Tensor) -> torch.Tensor:
-        """
-        Se utiliza para añadir ruido en autoencoders con regularización denoising.
-        Requiere que se implemente.
-        Args:
-            x_batch (torch.Tensor): Batch del conjunto de entrenamiento al que añadir ruido.
-        Output:
-            Batch de datos con ruido añadido.
-        """
-        return x_batch
-
     def fit(self, data: np.ndarray) -> None:
         """
         Entrena el autoencoder utilizando un conjunto de datos.
@@ -205,23 +219,3 @@ class Autoencoder(torch.nn.Module, ABC):
         x = torch.tensor(data, dtype=torch.float32, device=self.device)
         self._train_autoencoder(x)
         self.trained = True
-
-    def transform(self, data: np.ndarray) -> np.ndarray | None:
-        """
-        Requiere que el autoencoder haya sido entrenado previamente
-        con `fit()`. Se utiliza para obtener la representación latente
-        (salida del encoder) del autoencoder de un conjunto de datos.
-        Args:
-            data (np.ndarray): Datos de los cuales se desea obtener el embedding.
-        Output:
-            Representación latente de la entrada.
-        """
-        if not self.trained:
-            return None
-
-        self.eval()
-        with torch.no_grad():
-            data_tensor = torch.tensor(
-                data, dtype=torch.float32, device=self.device)
-            z = self.encoder(data_tensor)
-        return z.cpu().numpy()
