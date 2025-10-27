@@ -10,6 +10,7 @@ class LinearAutoencoder(Autoencoder):
     """
     Representa un autoencoder lineal.
     """
+
     def __init__(self,
                  batch_size: int,
                  input_dim: int,
@@ -19,7 +20,7 @@ class LinearAutoencoder(Autoencoder):
                  loss_fn: torch.nn.Module | None = None,
                  error_threshold: float = 0.0,
                  device: str = "cpu"
-        ):
+                 ):
         """
         Constructor de la clase LinearAutoencoder.
         Args:
@@ -34,7 +35,7 @@ class LinearAutoencoder(Autoencoder):
             device (str): Dispositivo en que entrenar el modelo.
         """
         super(LinearAutoencoder, self).__init__(batch_size, input_dim, latent_dim,
-                         lr, epochs, loss_fn, error_threshold, device)
+                                                lr, epochs, loss_fn, error_threshold, device)
 
     def _build_encoder(self):
         """
@@ -42,9 +43,7 @@ class LinearAutoencoder(Autoencoder):
         """
         self.encoder = torch.nn.Sequential(
             torch.nn.Linear(in_features=self.input_dim, out_features=128),
-            torch.nn.ReLU(),
             torch.nn.Linear(in_features=128, out_features=64),
-            torch.nn.ReLU(),
             torch.nn.Linear(in_features=64, out_features=self.latent_dim)
         )
 
@@ -54,8 +53,6 @@ class LinearAutoencoder(Autoencoder):
         """
         self.decoder = torch.nn.Sequential(
             torch.nn.Linear(in_features=self.latent_dim, out_features=64),
-            torch.nn.ReLU(),
             torch.nn.Linear(in_features=64, out_features=128),
-            torch.nn.ReLU(),
             torch.nn.Linear(in_features=128, out_features=self.input_dim)
         )
