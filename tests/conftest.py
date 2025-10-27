@@ -39,31 +39,27 @@ DATASET_FIXTURES = tuple(zip(DATASET_NAMES, ("mnist_data",
 @pytest.fixture(scope="session")
 def mnist_data():
     from utils import load_image_dataset
-    data_train, data_test = load_image_dataset("mnist_784", seed=RANDOM_SEED)
-    return data_train, data_test
+    return load_image_dataset("mnist_784", True, seed=RANDOM_SEED)
 
 
 @pytest.fixture(scope="session")
 def fashion_mnist_data():
     from utils import load_image_dataset
-    data_train, data_test = load_image_dataset(
-        "Fashion-MNIST", seed=RANDOM_SEED)
-    return data_train, data_test
+    return load_image_dataset(
+        "Fashion-MNIST", True, seed=RANDOM_SEED)
 
 
 @pytest.fixture(scope="session")
 def cifar10_data():
     from utils import load_image_dataset
-    data_train, data_test = load_image_dataset(
-        "cifar_10_small", seed=RANDOM_SEED)
-    return data_train, data_test
+    return load_image_dataset(
+        "cifar_10_small", True, seed=RANDOM_SEED)
 
 
 @pytest.fixture(scope="session")
 def glass_data():
     from utils import load_glass_identification_dataset
-    data_train, data_test = load_glass_identification_dataset(seed=RANDOM_SEED)
-    return data_train, data_test
+    return load_glass_identification_dataset(True, seed=RANDOM_SEED)
 
 # Fixtures de rutas
 

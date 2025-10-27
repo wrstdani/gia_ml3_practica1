@@ -10,13 +10,14 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 from sklearn.datasets import fetch_openml
 
+
 def load_image_dataset(
     name: str,
     return_labels: bool = False,
     return_test: bool = True,
     normalize: bool = True,
     seed: int = 42
-    ) -> np.ndarray | tuple[np.ndarray, np.ndarray] | \
+) -> np.ndarray | tuple[np.ndarray, np.ndarray] | \
         tuple[tuple[np.ndarray, np.ndarray], tuple[np.ndarray, np.ndarray]] | None:
     """
     Carga un dataset de imágenes. Los datasets válidos son mnist_784, 
@@ -55,8 +56,8 @@ def load_glass_identification_dataset(
     return_test: bool = True,
     normalize: bool = True,
     seed: int = 42
-    ) -> np.ndarray | tuple[np.ndarray, np.ndarray] | \
-            tuple[tuple[np.ndarray, np.ndarray], tuple[np.ndarray, np.ndarray]]:
+) -> np.ndarray | tuple[np.ndarray, np.ndarray] | \
+        tuple[tuple[np.ndarray, np.ndarray], tuple[np.ndarray, np.ndarray]]:
     """
     Carga el dataset Glass Identification (único dataset para pruebas cuyos datos no son imágenes).
     Args:
@@ -85,7 +86,7 @@ def load_csv_fashion_mnist(
     path: os.PathLike,
     return_labels: bool = False,
     normalize: bool = True
-    ):
+):
     """
     Carga un dataset de Fashion MNIST en formato CSV.
     Args:
@@ -107,7 +108,7 @@ def create_subset(
     num_samples: int,
     labels: np.ndarray | None = None,
     seed: int = 42
-    ) -> np.ndarray | tuple[np.ndarray, np.ndarray]:
+) -> np.ndarray | tuple[np.ndarray, np.ndarray]:
     """
     Devuelve un subconjunto de datos del proporcionado en los argumentos.
     Dicho subconjunto se elige de manera aleatoria.
@@ -120,15 +121,18 @@ def create_subset(
     np.random.seed(seed)
     actual_size = min(num_samples, data.shape[0])
     indices = np.random.choice(data.shape[0], size=actual_size, replace=False)
-    return ((data[indices, :], labels[indices]) if labels else data[indices, :])
+    return ((data[indices, :], labels[indices]) if (labels is not None) else data[indices, :])
 
 
 def save_experiment(
     csv_path: os.PathLike,
     embeddings_path: os.PathLike,
+    labels_path: os.PathLike,
     experiment_name: str,
     embedding_train: np.ndarray,
+    labels_train: np.ndarray,
     embedding_test: np.ndarray,
+    labels_test: np.ndarray,
     trustworthiness_train: float,
     trustworthiness_test: float,
     elapsed_fit_train: float | None,
@@ -170,6 +174,10 @@ def save_experiment(
         "embedding_train": embedding_train,
         "embedding_test": embedding_test
     }
+    labels_dict = {
+        "labels_train": labels_train,
+        "labels_test": labels_test
+    }
 
     df = pd.DataFrame(test_dict)
     df.set_index("test_id")
@@ -181,3 +189,6 @@ def save_experiment(
 
     with open(embeddings_path, "wb") as f:
         pickle.dump(embeddings_dict, f)
+
+    with open(labels_path, "wb") as f:
+        pickle.dump(labels_dict, f)

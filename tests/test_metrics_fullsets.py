@@ -20,7 +20,8 @@ def test_metrics_fullsets(
     dataset_fixture,
     request
 ):
-    data_train, data_test = request.getfixturevalue(dataset_fixture)
+    ((data_train, labels_train), (data_test,
+                                  labels_test)) = request.getfixturevalue(dataset_fixture)
 
     autoencoder = autoencoder_factory(
         autoencoder_type, data_train.shape[1])
@@ -43,17 +44,21 @@ def test_metrics_fullsets(
 
     results_subpath = os.path.join(results_path, f"{dataset_name}")
     os.makedirs(results_subpath, exist_ok=True)
-    test_name = f"{dataset_name}_fullset_{autoencoder_type}_{manifold_alg}".lower()
+    test_name = f"fullset_{autoencoder_type}_{manifold_alg}".lower()
     csv_filename = f"tests_{dataset_name}_output.csv"
-    embeddings_filename = f"{dataset_name}_fullset_{autoencoder_type}_{manifold_alg}.pkl".lower(
+    embeddings_filename = f"{dataset_name}_fullset_{autoencoder_type}_{manifold_alg}_embeddings.pkl".lower(
     )
+    labels_filename = f"{dataset_name}_fullset_{autoencoder_type}_{manifold_alg}_labels.pkl"
 
     save_experiment(
         os.path.join(results_subpath, csv_filename),
         os.path.join(results_subpath, embeddings_filename),
+        os.path.join(results_subpath, labels_filename),
         test_name,
         output_train,
+        labels_train,
         output_test,
+        labels_test,
         trustworthiness_train,
         trustworthiness_test,
         elapsed_fit_train,

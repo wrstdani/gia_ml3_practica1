@@ -20,11 +20,12 @@ class MixedManifoldDetector:
     Clase que representa el sistema principal de la práctica.
     Se compone de un autoencoder y un algoritmo de manifold learning clásico.
     """
+
     def __init__(self,
                  input_dim: int | None = None,
                  autoencoder: Autoencoder | None = None,
                  manifold_alg: sklearn.base.TransformerMixin | None = None,
-        ):
+                 ):
         """
         Constructor de la clase principal del sistema.
         Args:
@@ -75,7 +76,8 @@ class MixedManifoldDetector:
         self.train_embeddings = self.autoencoder.transform(self.train_data)
         print("- Ejecutando algoritmo de manifold learning sobre los embeddings...")
         self.train_manifold = self.manifold_alg.fit_transform(
-            self.train_embeddings)  # Obtenemos la representación 2D de los embeddings.
+            # Obtenemos la representación 2D de los embeddings.
+            self.train_embeddings)
         # Hacemos que la instancia de NearestNeighbors para los patrones de entrenamiento
         # los aprenda.
         self.knn_train_data.fit(self.train_data)
@@ -91,13 +93,14 @@ class MixedManifoldDetector:
             train_data (np.ndarray): Conjunto de datos de entrenamiento.
         """
         self.fit_transform(
-            train_data)  # Ejecutamos fit_transform() sin devolver el resultado.
+            # Ejecutamos fit_transform() sin devolver el resultado.
+            train_data)
 
     def transform(self,
                   data: np.ndarray,
                   k: int = 5,
                   threshold: float = 1e-9
-        ) -> np.ndarray:
+                  ) -> np.ndarray:
         """
         Método que, en caso de que los datos sean distintos a los de entrenamiento
         aplica interpolación con los k embeddings más cercanos al obtenido con
@@ -172,12 +175,14 @@ def main():
     args = parser.parse_args()
 
     # Cargar datos
-    data_train = load_csv_fashion_mnist(args.path_train)
-    data_test = load_csv_fashion_mnist(args.path_test)
+    data_train, labels_train = load_csv_fashion_mnist(args.path_train, True)
+    data_test, labels_test = load_csv_fashion_mnist(args.path_test, True)
     num_samples_train = 300
     num_samples_test = 50
-    data_train = create_subset(data_train, num_samples_train)
-    data_test = create_subset(data_test, num_samples_test)
+    data_train, labels_train = create_subset(
+        data_train, num_samples_train, labels_train)
+    data_test, labels_test = create_subset(
+        data_test, num_samples_test, labels_test)
 
     # Creamos una instancia del detector
     input_dim = data_train.shape[1]
@@ -187,6 +192,7 @@ def main():
     models_path = os.path.join(results_subpath, "models")
     csv_path = os.path.join(results_subpath, "script_output.csv")
     embeddings_path = os.path.join(results_subpath, "script_embeddings.pkl")
+    labels_path = os.path.join(results_subpath, "script_labels.pkl")
     if not os.path.exists(models_path):
         detector = MixedManifoldDetector(input_dim)
         # Entrenamos el detector
@@ -194,7 +200,8 @@ def main():
         detector.fit(data_train)
         elapsed_fit_train = time.time() - start_fit_train
     else:
-        detector = MixedManifoldDetector.load(os.path.join(models_path, "detector_base.pkl"))
+        detector = MixedManifoldDetector.load(
+            os.path.join(models_path, "detector_base.pkl"))
     # Obtenemos la representación 2D de los datos de entrenamiento y test
     start_transform_train = time.time()
     output_train = detector.transform(data_train)
@@ -211,9 +218,12 @@ def main():
     save_experiment(
         csv_path,
         embeddings_path,
+        labels_path,
         "script_test",
         output_train,
+        labels_train,
         output_test,
+        labels_test,
         trustworthiness_train,
         trustworthiness_test,
         elapsed_fit_train,
@@ -223,6 +233,7 @@ def main():
 
     if elapsed_fit_train:
         detector.save(models_path)
+
 
 if __name__ == "__main__":
     main()
