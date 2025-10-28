@@ -47,7 +47,7 @@
 ---
 ## Ejecución del proyecto
 - Es importante que, si se quiere utilizar los conjuntos *train* y *test* de **Fashion MNIST** que se encuentran en data/, utilices `git lfs pull` dentro del repositorio tras clonarlo.
-- Para ejecutar este proyecto se recomienda utilizar **Python 3.12** con las librerías (y sus respectivas versiones) especificadas en `./requirements.txt`. Tenemos dos opciones para hacerlo:
+- Para ejecutar este proyecto se recomienda utilizar **Python 3.12** con las librerías (y sus respectivas versiones) especificadas en `./requirements.txt`. Tenemos tres opciones para hacerlo:
     - Venv🐍:
         ```bash
         venv .venv && \
