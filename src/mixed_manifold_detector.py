@@ -130,7 +130,7 @@ class MixedManifoldDetector(sklearn.base.TransformerMixin):
         if self.autoencoder is not None:
             new_embeddings = self.autoencoder.transform(data)
         else:
-            new_embeddings = data
+            new_embeddings = data.copy()
 
         for pattern, embedding in zip(data, new_embeddings):
             train_data_distances, train_data_indices = self._knn_train_data.kneighbors(

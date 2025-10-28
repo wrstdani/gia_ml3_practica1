@@ -56,4 +56,4 @@ class LinearSparseAutoencoder(LinearAutoencoder):
         Output:
             Término de regularización L1
         """
-        return torch.tensor(self.lambda_val * torch.mean(torch.abs(z)), dtype=torch.float32, device=self.device, requires_grad=True)
+        return self.lambda_val * torch.mean(torch.abs(z))

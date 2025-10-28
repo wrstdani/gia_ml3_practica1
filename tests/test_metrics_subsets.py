@@ -62,11 +62,11 @@ def test_metrics_subsets_detector(
 
     results_subpath = os.path.join(results_path, f"{dataset_name}")
     os.makedirs(results_subpath, exist_ok=True)
-    test_name = f"{size_label}_{autoencoder_type}_{manifold_alg}".lower()
-    csv_filename = f"tests_{dataset_name}_output.csv"
-    embeddings_filename = f"{dataset_name}_{size_label}_{autoencoder_type}_{manifold_alg}_embeddings.pkl".lower(
+    test_name = f"{size_label}-{autoencoder_type}-{manifold_alg}".lower()
+    csv_filename = f"tests-{dataset_name}-output.csv"
+    embeddings_filename = f"{dataset_name}-{size_label}-{autoencoder_type}-{manifold_alg}-embeddings.pkl".lower(
     )
-    labels_filename = f"{dataset_name}_{size_label}_{autoencoder_type}_{manifold_alg}_labels.pkl".lower()
+    labels_filename = f"{dataset_name}-{size_label}-{autoencoder_type}-{manifold_alg}-labels.pkl".lower()
 
     save_experiment(
         os.path.join(results_subpath, csv_filename),
@@ -130,10 +130,10 @@ def test_metrics_subsets_manifold_only(
 
     results_subpath = os.path.join(results_path, f"{dataset_name}")
     os.makedirs(results_subpath, exist_ok=True)
-    test_name = f"{size_label}_noautoencoder_{manifold_alg}".lower()
-    csv_filename = f"tests_{dataset_name}_output.csv"
-    embeddings_filename = f"{dataset_name}_{size_label}_noautoencoder_{manifold_alg}_embeddings.pkl".lower()
-    labels_filename = f"{dataset_name}_{size_label}_noautoencoder_{manifold_alg}_labels.pkl".lower()
+    test_name = f"{size_label}-noautoencoder-{manifold_alg}".lower()
+    csv_filename = f"tests-{dataset_name}-output.csv"
+    embeddings_filename = f"{dataset_name}-{size_label}-noautoencoder-{manifold_alg}-embeddings.pkl".lower()
+    labels_filename = f"{dataset_name}-{size_label}-noautoencoder-{manifold_alg}-labels.pkl".lower()
 
     save_experiment(
         os.path.join(results_subpath, csv_filename),

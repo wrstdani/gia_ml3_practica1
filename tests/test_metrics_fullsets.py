@@ -44,11 +44,11 @@ def test_metrics_fullsets(
 
     results_subpath = os.path.join(results_path, f"{dataset_name}")
     os.makedirs(results_subpath, exist_ok=True)
-    test_name = f"fullset_{autoencoder_type}_{manifold_alg}".lower()
-    csv_filename = f"tests_{dataset_name}_output.csv"
-    embeddings_filename = f"{dataset_name}_fullset_{autoencoder_type}_{manifold_alg}_embeddings.pkl".lower(
+    test_name = f"fullset-{autoencoder_type}-{manifold_alg}".lower()
+    csv_filename = f"tests-{dataset_name}-output.csv"
+    embeddings_filename = f"{dataset_name}-fullset-{autoencoder_type}-{manifold_alg}-embeddings.pkl".lower(
     )
-    labels_filename = f"{dataset_name}_fullset_{autoencoder_type}_{manifold_alg}_labels.pkl"
+    labels_filename = f"{dataset_name}-fullset-{autoencoder_type}-{manifold_alg}-labels.pkl"
 
     save_experiment(
         os.path.join(results_subpath, csv_filename),
