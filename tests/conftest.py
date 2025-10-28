@@ -159,9 +159,9 @@ def mixed_manifold_detector_factory():
         params = {**default_params, **kwargs}
 
         if manifold_alg == "tsne":
-            params["manifold_alg"] = TSNE(n_components=2)
+            params["manifold_alg"] = TSNE()
         elif manifold_alg == "lle":
-            params["manifold_alg"] = LocallyLinearEmbedding(n_components=2)
+            params["manifold_alg"] = LocallyLinearEmbedding()
         else:
             raise ValueError(
                 f"Tipo de algoritmo de manifold desconocido: {manifold_alg}")

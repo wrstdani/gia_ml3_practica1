@@ -206,9 +206,9 @@ def main():
     results_subpath = os.path.join("artifacts", "script")
     for f in os.listdir(results_subpath):
         os.remove(os.path.join(results_subpath, f))
-    csv_path = os.path.join(results_subpath, "script_output.csv")
-    embeddings_path = os.path.join(results_subpath, "script_embeddings.pkl")
-    labels_path = os.path.join(results_subpath, "script_labels.pkl")
+    csv_path = os.path.join(results_subpath, "script-output.csv")
+    embeddings_path = os.path.join(results_subpath, "script-embeddings.pkl")
+    labels_path = os.path.join(results_subpath, "script-labels.pkl")
     detector = MixedManifoldDetector(input_dim)
 
     # Entrenamos el detector
@@ -233,7 +233,7 @@ def main():
         csv_path,
         embeddings_path,
         labels_path,
-        "script_test",
+        "test-script",
         output_train,
         labels_train,
         output_test,
