@@ -7,6 +7,7 @@ import sys
 import pytest
 import numpy as np
 import sklearn
+from sklearn.manifold import TSNE, LocallyLinearEmbedding
 import itertools
 
 # Incluir la raíz del proyecto en el path
@@ -158,9 +159,9 @@ def mixed_manifold_detector_factory():
         params = {**default_params, **kwargs}
 
         if manifold_alg == "tsne":
-            params["manifold_alg"] = sklearn.manifold.TSNE()
+            params["manifold_alg"] = TSNE(n_components=2)
         elif manifold_alg == "lle":
-            params["manifold_alg"] = sklearn.manifold.LocallyLinearEmbedding()
+            params["manifold_alg"] = LocallyLinearEmbedding(n_neighbors=2)
         else:
             raise ValueError(
                 f"Tipo de algoritmo de manifold desconocido: {manifold_alg}")

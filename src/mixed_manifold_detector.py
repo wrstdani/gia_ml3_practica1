@@ -25,6 +25,7 @@ class MixedManifoldDetector(sklearn.base.TransformerMixin):
                  input_dim: int | None = None,
                  autoencoder: Autoencoder | None = None,
                  manifold_alg: sklearn.base.TransformerMixin | None = None,
+                 only_manifold: bool = False
                  ):
         """
         Constructor de la clase principal del sistema.
@@ -36,17 +37,20 @@ class MixedManifoldDetector(sklearn.base.TransformerMixin):
         """
         super(MixedManifoldDetector, self).__init__()
 
-        if input_dim is None and autoencoder is None:
-            raise ValueError(
-                "input_dim no puede ser NoneType si no se proporciona un autoencoder")
-        elif input_dim is None:
-            input_dim = autoencoder.input_dim
-
-        if autoencoder is None:
-            self.autoencoder = LinearAutoencoder(
-                batch_size=32, input_dim=input_dim)
+        if only_manifold:
+            self.autoencoder = None
         else:
-            self.autoencoder = autoencoder
+            if input_dim is None and autoencoder is None:
+                raise ValueError(
+                    "input_dim no puede ser NoneType si no se proporciona un autoencoder y only_manifold es False")
+            elif autoencoder is not None and input_dim is None:
+                input_dim = autoencoder.input_dim
+
+            if autoencoder is None:
+                self.autoencoder = LinearAutoencoder(
+                    batch_size=32, input_dim=input_dim)
+            else:
+                self.autoencoder = autoencoder
 
         if manifold_alg is None:
             self.manifold_alg = sklearn.manifold.TSNE()
@@ -74,13 +78,19 @@ class MixedManifoldDetector(sklearn.base.TransformerMixin):
         """
         self._train_data = data.copy()
 
-        self.autoencoder.fit(self._train_data)  # Entrenamos el autoencoder.
-        # Obtenemos los embeddings con el autoencoder entrenado.
-        self._train_embeddings = self.autoencoder.transform(self._train_data)
+        if self.autoencoder is not None:
+            # Entrenamos el autoencoder.
+            self.autoencoder.fit(self._train_data)
+            # Obtenemos los embeddings con el autoencoder entrenado.
+            self._train_embeddings = self.autoencoder.transform(
+                self._train_data)
+        else:
+            self._train_embeddings = self._train_data.copy()
+
         print("- Ejecutando algoritmo de manifold learning sobre los embeddings...")
         self._train_manifold = self.manifold_alg.fit_transform(
-            # Obtenemos la representación 2D de los embeddings.
             self._train_embeddings)
+
         # Hacemos que la instancia de NearestNeighbors para los patrones de entrenamiento
         # los aprenda.
         self._knn_train_data.fit(self._train_data)
@@ -117,7 +127,10 @@ class MixedManifoldDetector(sklearn.base.TransformerMixin):
             Representación 2D de la representación latente
         """
         transformed = []
-        new_embeddings = self.autoencoder.transform(data)
+        if self.autoencoder is not None:
+            new_embeddings = self.autoencoder.transform(data)
+        else:
+            new_embeddings = data
 
         for pattern, embedding in zip(data, new_embeddings):
             train_data_distances, train_data_indices = self._knn_train_data.kneighbors(
