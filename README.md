@@ -5,30 +5,43 @@
 ## Estructura del proyecto🏗️
 ```bash
 .
-├── Dockerfile
-├── LICENSE
-├── PracticaObligatoria1.pdf  # Enunciado de la práctica
-├── README.md
+├── artifacts
+│   ├── cifar_10_small
+│   ├── Fashion-MNIST
+│   ├── Glass-Classification
+│   └── mnist_784
 ├── data
-│   ├── fashion-mnist_label_dict.json  # Diccionario para convertir índices a etiquetas categóricas
-│   ├── fashion-mnist_test.csv  # Conjunto de test de Fashion MNIST
-│   └── fashion-mnist_train.csv  # Conjunto de entrenamiento de Fashion MNIST
-├── entrypoint.sh  # Entrypoint para ejecutar el script principal del proyecto
-├── pyproject.toml
-├── requirements-dev.txt
-├── requirements.txt
+│   ├── fashion-mnist_label_dict.json
+│   ├── fashion-mnist_test.csv
+│   └── fashion-mnist_train.csv
+├── Dockerfile
+├── entrypoint.sh
+├── gia_ml3_practica1_memoria.pdf
+├── LICENSE
+├── notebooks
+│   ├── datasets.ipynb
+│   └── graphs.ipynb
+│  
+├── PracticaObligatoria1.pdf  # Enunciado de la práctica
+├── pyproject.toml  # Configuración del proyecto Python
+├── pytest.ini
+├── README.md
+├── requirements-dev.txt  # Dependencias de desarrollador
+├── requirements.txt  # Dependencias
 ├── src
-│   ├── autoencoder.py
-│   ├── denoising_sparse_autoencoder.py
-│   ├── linear_autoencoder.py
-│   ├── linear_sparse_autoencoder.py
-│   ├── mixed_manifold_detector.py
-│   ├── utils.py
-│   └── variational_autoencoder.py
+│   ├── autoencoder.py
+│   ├── denoising_sparse_autoencoder.py
+│   ├── __init__.py
+│   ├── linear_autoencoder.py
+│   ├── linear_sparse_autoencoder.py
+│   ├── mixed_manifold_detector.py
+│   ├── utils.py
+│   └── variational_autoencoder.py
 └── tests
-    ├── conftest.py  # Configuración de tests
-    ├── test_dimensionality.py  # Tests de dimensionalidad de salida
-    └── test_metrics_subsets.py  # Tests de métricas con subconjuntos de datos
+    ├── conftest.py
+    ├── test_dimensionality.py  # Tests para comprobar la dimensionalidad de los outputs
+    ├── test_metrics_fullsets.py  # Testing con conjuntos de datos completos
+    └── test_metrics_subsets.py  # Testing con subconjuntos de datos
 ```
 
 ---

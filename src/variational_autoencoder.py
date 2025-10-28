@@ -92,7 +92,7 @@ class VariationalAutoencoder(Autoencoder):
         recon: torch.Tensor
     ) -> torch.Tensor:
         """
-        Se utiliza para calcular un término adicional para la función de pérdida.
+        Se utiliza para calcular el término de divergencia KL como pérdida adicional.
         Args:
             x_batch (torch.Tensor): Batch de datos de entrada.
             z (torch.Tensor): Representación latente del batch.

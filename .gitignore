@@ -209,4 +209,8 @@ __marimo__/
 .DS_Store
 
 artifacts/*
+!artifacts/*.zip
 *.idea
+
+notebooks/*
+!notebooks/*.ipynb

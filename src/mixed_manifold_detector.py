@@ -204,8 +204,9 @@ def main():
     input_dim = data_train.shape[1]
     elapsed_fit_train = None
     results_subpath = os.path.join("artifacts", "script")
-    for f in os.listdir(results_subpath):
-        os.remove(os.path.join(results_subpath, f))
+    if os.path.exists(results_subpath):
+        for f in os.listdir(results_subpath):
+            os.remove(os.path.join(results_subpath, f))
     csv_path = os.path.join(results_subpath, "script-output.csv")
     embeddings_path = os.path.join(results_subpath, "script-embeddings.pkl")
     labels_path = os.path.join(results_subpath, "script-labels.pkl")
