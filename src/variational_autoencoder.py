@@ -80,9 +80,9 @@ class VariationalAutoencoder(Autoencoder):
             Representación latente de los datos y reconstrucción de los datos.
         """
         encoder_output = self.encoder(x)
-        mu = self.mu_layer(encoder_output)
-        logvar = self.logvar_layer(encoder_output)
-        z = self._sample(mu, logvar)
+        self.mu = self.mu_layer(encoder_output)
+        self.logvar = self.logvar_layer(encoder_output)
+        z = self._sample(self.mu, self.logvar)
         return (z, self.decoder(z))
 
     def _compute_additional_loss(
@@ -99,7 +99,10 @@ class VariationalAutoencoder(Autoencoder):
             recon (torch.Tensor): Reconstrucción del batch.
         """
 
-        return torch.tensor(0.0, device=self.device)
+        kl_divergence = -0.5 * \
+            torch.sum(1 + self.logvar - self.mu.pow(2) - self.logvar.exp())
+        kl_loss = kl_divergence / x_batch.size(0)
+        return kl_loss
 
     def _add_noise(self, x_batch: torch.Tensor) -> torch.Tensor:
         """
