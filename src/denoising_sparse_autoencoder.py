@@ -3,6 +3,7 @@ Autoencoder con regularizaciones Denoising y Sparse
 """
 
 import torch
+import torch.nn as nn
 from linear_sparse_autoencoder import LinearSparseAutoencoder
 
 
@@ -16,6 +17,7 @@ class DenoisingSparseAutoencoder(LinearSparseAutoencoder):
                  input_dim: int,
                  latent_dim: int = 32,
                  lr: float = 1e-3,
+                 activation: nn.Module = None,  # EXAMEN
                  epochs: int = 100,
                  loss_fn: torch.nn.Module | None = None,
                  error_threshold: float = 0.0,
@@ -33,7 +35,7 @@ class DenoisingSparseAutoencoder(LinearSparseAutoencoder):
         """
 
         super(DenoisingSparseAutoencoder, self).__init__(batch_size, input_dim, latent_dim,
-                                                         lr, epochs, loss_fn, error_threshold, device, lambda_val)
+                                                         lr, activation, epochs, loss_fn, error_threshold, device, lambda_val)
         self.noise_factor: float = noise_factor
 
     def _add_noise(self, x_batch: torch.Tensor) -> torch.Tensor:

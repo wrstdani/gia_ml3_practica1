@@ -17,6 +17,7 @@ class VariationalAutoencoder(Autoencoder):
                  input_dim: int,
                  latent_dim: int = 32,
                  lr: float = 1e-3,
+                 activation: nn.Module | None = nn.ReLU,  # EXAMEN
                  epochs: int = 100,
                  loss_fn: torch.nn.Module | None = None,
                  error_threshold: float = 0.0,
@@ -37,27 +38,41 @@ class VariationalAutoencoder(Autoencoder):
             device (str): Dispositivo en que entrenar el modelo.
         """
         super(VariationalAutoencoder, self).__init__(batch_size, input_dim, latent_dim,
-                                                     lr, epochs, loss_fn, error_threshold, device)
+                                                     lr, activation, epochs, loss_fn, error_threshold, device)
 
     def _build_encoder(self) -> None:
-        self.encoder = nn.Sequential(
-            nn.Linear(in_features=self.input_dim, out_features=128),
-            nn.ReLU(),
-            nn.Linear(in_features=128, out_features=64),
-            nn.ReLU()
-        )
+        if self.activation is None:   # EXAMEN
+            self.encoder = nn.Sequential(   
+                nn.Linear(in_features=self.input_dim, out_features=128),
+                nn.Linear(in_features=128, out_features=64),
+            )
+        else:
+            self.encoder = nn.Sequential(
+                nn.Linear(in_features=self.input_dim, out_features=128),
+                self.activation(),
+                nn.Linear(in_features=128, out_features=64),
+                self.activation()
+            )
+            
         self.mu_layer = nn.Linear(in_features=64, out_features=self.latent_dim)
         self.logvar_layer = nn.Linear(
             in_features=64, out_features=self.latent_dim)
 
     def _build_decoder(self) -> None:
-        self.decoder = nn.Sequential(
-            nn.Linear(in_features=self.latent_dim, out_features=64),
-            nn.ReLU(),
-            nn.Linear(in_features=64, out_features=128),
-            nn.ReLU(),
-            nn.Linear(in_features=128, out_features=self.input_dim)
-        )
+        if self.activation is None:
+            self.decoder = nn.Sequential(
+                nn.Linear(in_features=self.latent_dim, out_features=64),
+                nn.Linear(in_features=64, out_features=128),
+                nn.Linear(in_features=128, out_features=self.input_dim)
+            )
+        else:
+            self.decoder = nn.Sequential(
+                nn.Linear(in_features=self.latent_dim, out_features=64),
+                self.activation(),
+                nn.Linear(in_features=64, out_features=128),
+                self.activation(),
+                nn.Linear(in_features=128, out_features=self.input_dim)
+            )
 
     def _sample(self, mu: torch.Tensor, logvar: torch.Tensor) -> torch.Tensor:
         """

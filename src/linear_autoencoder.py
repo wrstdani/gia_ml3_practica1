@@ -4,6 +4,7 @@ Autoencoder lineal
 
 import numpy as np
 import torch
+import torch.nn as nn
 from autoencoder import Autoencoder
 
 
@@ -17,6 +18,7 @@ class LinearAutoencoder(Autoencoder):
                  input_dim: int,
                  latent_dim: int = 32,
                  lr: float = 1e-3,
+                 activation: nn.Module | None = None,  # EXAMEN
                  epochs: int = 100,
                  loss_fn: torch.nn.Module | None = None,
                  error_threshold: float = 0.0,
@@ -37,27 +39,45 @@ class LinearAutoencoder(Autoencoder):
             device (str): Dispositivo en que entrenar el modelo.
         """
         super(LinearAutoencoder, self).__init__(batch_size, input_dim, latent_dim,
-                                                lr, epochs, loss_fn, error_threshold, device, seed)
+                                                lr, activation, epochs, loss_fn, error_threshold, device, seed)
 
     def _build_encoder(self):
         """
         Construye el encoder
         """
-        self.encoder = torch.nn.Sequential(
-            torch.nn.Linear(in_features=self.input_dim, out_features=128),
-            torch.nn.Linear(in_features=128, out_features=64),
-            torch.nn.Linear(in_features=64, out_features=self.latent_dim)
-        )
+        if self.activation is None:
+            self.encoder = torch.nn.Sequential(
+                torch.nn.Linear(in_features=self.input_dim, out_features=128),
+                torch.nn.Linear(in_features=128, out_features=64),
+                torch.nn.Linear(in_features=64, out_features=self.latent_dim)
+            )
+        else:
+            self.encoder = torch.nn.Sequential(
+                torch.nn.Linear(in_features=self.input_dim, out_features=128),
+                self.activation(),
+                torch.nn.Linear(in_features=128, out_features=64),
+                self.activation(),
+                torch.nn.Linear(in_features=64, out_features=self.latent_dim)
+            )
 
     def _build_decoder(self):
         """
         Construye el decoder
         """
-        self.decoder = torch.nn.Sequential(
-            torch.nn.Linear(in_features=self.latent_dim, out_features=64),
-            torch.nn.Linear(in_features=64, out_features=128),
-            torch.nn.Linear(in_features=128, out_features=self.input_dim)
-        )
+        if self.activation is None:  # EXAMEN
+            self.decoder = torch.nn.Sequential(
+                torch.nn.Linear(in_features=self.latent_dim, out_features=64),
+                torch.nn.Linear(in_features=64, out_features=128),
+                torch.nn.Linear(in_features=128, out_features=self.input_dim)
+            )
+        else:
+            self.decoder = torch.nn.Sequential(
+                torch.nn.Linear(in_features=self.latent_dim, out_features=64),
+                self.activation(),
+                torch.nn.Linear(in_features=64, out_features=128),
+                self.activation(),
+                torch.nn.Linear(in_features=128, out_features=self.input_dim)
+            )
 
     def _forward(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
         """

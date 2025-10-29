@@ -12,7 +12,7 @@ import sklearn
 from sklearn.manifold import trustworthiness
 from autoencoder import Autoencoder
 from linear_autoencoder import LinearAutoencoder
-from utils import load_csv_fashion_mnist, save_experiment, create_subset
+from utils import load_csv_fashion_mnist, save_experiment, create_subset, continuity  # EXAMEN (la función continuity está implementada en src/utils.py)
 
 
 class MixedManifoldDetector(sklearn.base.TransformerMixin):
@@ -227,7 +227,9 @@ def main():
 
     # Calcular valores de trustworthiness para train y test
     trustworthiness_train = trustworthiness(data_train, output_train)
+    continuity_train = continuity(data_train, output_train)  # EXAMEN
     trustworthiness_test = trustworthiness(data_test, output_test)
+    continuity_test = continuity(data_test, output_test)  # EXAMEN
 
     # Guardar datos
     save_experiment(
@@ -247,6 +249,17 @@ def main():
     )
 
     detector.save(results_subpath)
+
+    # EXAMEN
+    # - Se han obtenido los siguientes valores para C_train y C_test en la primera ejecución de este script principal con la función continuity():
+    #   - C_train = 0.988570657051282
+    #   - C_test = 0.9792528225806452
+    # Esto nos indica que que, al ser valores muy cercanos a 1.0, se preserva casi perfectamente la correspondencia entre los vecinos
+    # en el espacio original y los vecinos en el espacio reducido.
+    # Para obtener estos resultados, se ha utilizado un detector que combina LinearAutoencoder con t-SNE.
+    print("- Valores de continuity para la modificación de la práctica en el examen:")
+    print(f"    - C_train = {continuity_train}")
+    print(f"    - C_test = {continuity_test}")
 
 
 if __name__ == "__main__":

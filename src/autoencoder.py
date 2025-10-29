@@ -5,6 +5,7 @@ Interfaz para construir diferentes tipos de autoencoders
 from abc import ABC, abstractmethod
 import numpy as np
 import torch
+import torch.nn as nn
 from tqdm import tqdm
 
 
@@ -14,6 +15,7 @@ class Autoencoder(torch.nn.Module, ABC):
                  input_dim: int,
                  latent_dim: int = 32,
                  lr: float = 1e-3,
+                 activation: nn.Module | None = None,  # EXAMEN
                  epochs: int = 100,
                  loss_fn: torch.nn.Module | None = None,
                  error_threshold: float = 0.0,
@@ -44,6 +46,7 @@ class Autoencoder(torch.nn.Module, ABC):
         self.input_dim = input_dim
         self.latent_dim = latent_dim
         self.lr = lr
+        self.activation = activation  # EXAMEN
         self.epochs = epochs
         self.loss_fn = loss_fn if loss_fn is not None else torch.nn.MSELoss()
         self.error_threshold = error_threshold

@@ -3,6 +3,7 @@ Autoencoder lineal con regularización Sparse
 """
 
 import torch
+import torch.nn as nn
 from linear_autoencoder import LinearAutoencoder
 
 
@@ -17,6 +18,7 @@ class LinearSparseAutoencoder(LinearAutoencoder):
                  input_dim: int,
                  latent_dim: int = 32,
                  lr: float = 1e-3,
+                 activation: nn.Module | None = None,
                  epochs: int = 100,
                  loss_fn: torch.nn.Module | None = None,
                  error_threshold: float = 0.0,
@@ -33,6 +35,7 @@ class LinearSparseAutoencoder(LinearAutoencoder):
                                                       input_dim,
                                                       latent_dim,
                                                       lr,
+                                                      activation,
                                                       epochs,
                                                       loss_fn,
                                                       error_threshold,

@@ -9,6 +9,7 @@ import pandas as pd
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 from sklearn.datasets import fetch_openml
+from sklearn.metrics import pairwise_distances
 
 
 def load_image_dataset(
@@ -192,3 +193,25 @@ def save_experiment(
 
     with open(labels_path, "wb") as f:
         pickle.dump(labels_dict, f)
+
+# EXAMEN
+def continuity(X: np.ndarray, X_emb: np.ndarray, k: int = 5) -> float:
+    n = X.shape[0]
+    # Distancias
+    D_orig = pairwise_distances(X)
+    D_emb = pairwise_distances(X_emb)
+    # Top-k vecinos en ambos espacios
+    orig_neighbors = np.argsort(D_orig, axis=1)[:, :k]
+    emb_neighbors = np.argsort(D_emb, axis=1)[:, :k]
+    # Rango 1-based en el espacio reducido
+    emb_rank = np.argsort(np.argsort(D_emb, axis=1), axis=1) + 1
+    c_sum = 0.0
+    for i in range(n):
+        # Vecinos reales perdidos tras la reducción
+        missing = set(orig_neighbors[i]) - set(emb_neighbors[i])
+        for j in missing:
+            r = emb_rank[i, j] # rango en embebido
+            c_sum += (r - k)
+    denom = n * k * (2*n - 3*k - 1)
+    C = 1 - (2 * c_sum) / denom
+    return C
